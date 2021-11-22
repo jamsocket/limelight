@@ -1,0 +1,28 @@
+[package]
+name = "gl-layers"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bytemuck = { version = "1.7.2", features = ["derive"] }
+js-sys = "0.3.55"
+wasm-bindgen = "0.2.78"
+web-sys = { version="0.3.55", features = [
+  'console',
+  'Document',
+  'Element',
+  'HtmlCanvasElement',
+  'Performance',
+  'WebGlBuffer',
+  'WebGl2RenderingContext',
+  'WebGlVertexArrayObject',
+  'WebGlUniformLocation',
+  'WebGlProgram',
+  'WebGlShader',
+  'WebGlTexture',
+  'WebGlSync',
+  'Window',
+] }
+derive_vertex_attribute = { version="0.1.0", path="./derive_vertex_attribute" }
