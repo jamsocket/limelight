@@ -1,6 +1,9 @@
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::state::{blending::{BlendEquation, BlendingFactorDest, BlendingFactorSrc}, enable::EnableCap};
+use crate::state::{
+    blending::{BlendEquation, BlendingFactorDest, BlendingFactorSrc},
+    enable::EnableCap,
+};
 
 pub enum WebGlStateChange {
     Enable(EnableCap),
@@ -25,7 +28,5 @@ impl WebGlStateChange {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_simple_plan() {
-
-    }
+    fn test_simple_plan() {}
 }

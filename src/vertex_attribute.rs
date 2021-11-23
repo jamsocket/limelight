@@ -1,7 +1,6 @@
-use web_sys::{WebGl2RenderingContext, WebGlProgram};
-
 use crate::types::{DataType, SizedDataType};
 pub use derive_vertex_attribute::VertexAttribute;
+use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 #[derive(Debug, PartialEq)]
 pub struct VertexAttributeBinding {

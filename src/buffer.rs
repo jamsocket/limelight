@@ -2,6 +2,8 @@ use std::marker::PhantomData;
 
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
+use crate::vertex_attribute::VertexAttribute;
+
 #[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum BufferBindPoint {
@@ -17,7 +19,7 @@ pub enum BufferUsageHint {
     DynamicDraw = 0x88E8,
 }
 
-pub struct AttributeBuffer<T: bytemuck::Zeroable + bytemuck::Pod> {
+pub struct AttributeBuffer<T: VertexAttribute> {
     inner: Option<WebGlBuffer>,
     capacity: i32, // Total capacity of GPU-side buffer, in elements of T.
     bind_point: BufferBindPoint,
@@ -29,7 +31,7 @@ pub struct AttributeBuffer<T: bytemuck::Zeroable + bytemuck::Pod> {
     _phantom: PhantomData<T>,
 }
 
-impl<T: bytemuck::Zeroable + bytemuck::Pod> AttributeBuffer<T> {
+impl<T: VertexAttribute> AttributeBuffer<T> {
     pub fn new(bind_point: BufferBindPoint, usage: BufferUsageHint) -> Self {
         Self {
             inner: None,
@@ -57,7 +59,7 @@ impl<T: bytemuck::Zeroable + bytemuck::Pod> AttributeBuffer<T> {
 
                 gl.buffer_data_with_u8_array(
                     self.bind_point as _,
-                    &bytemuck::cast_slice(&self.data),
+                    bytemuck::cast_slice(&self.data),
                     self.usage as _,
                 );
 
@@ -68,7 +70,7 @@ impl<T: bytemuck::Zeroable + bytemuck::Pod> AttributeBuffer<T> {
                 gl.buffer_sub_data_with_i32_and_u8_array(
                     self.bind_point as _,
                     0,
-                    &bytemuck::cast_slice(&self.data),
+                    bytemuck::cast_slice(&self.data),
                 );
             }
 
@@ -84,5 +86,9 @@ impl<T: bytemuck::Zeroable + bytemuck::Pod> AttributeBuffer<T> {
 
     pub fn len(&self) -> usize {
         self.data.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
     }
 }

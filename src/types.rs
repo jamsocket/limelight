@@ -18,14 +18,11 @@ pub struct SizedDataType {
 
 impl SizedDataType {
     pub fn new(data_type: DataType, size: i32) -> Self {
-        if size < 1 || size > 4 {
+        if !(1..=4).contains(&size) {
             panic!("Tried to create SizedDataType with size {} but glsl only supports vec{{2,3,4}} and scalars.", size);
         }
 
-        SizedDataType {
-            data_type,
-            size
-        }
+        SizedDataType { data_type, size }
     }
 
     pub fn byte_size(&self) -> i32 {
@@ -60,7 +57,7 @@ impl AsSizedDataType for f32 {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Float,
-            size: 1
+            size: 1,
         }
     }
 }
@@ -69,7 +66,7 @@ impl<const N: usize> AsSizedDataType for [f32; N] {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Float,
-            size: N as _
+            size: N as _,
         }
     }
 }
@@ -78,7 +75,7 @@ impl AsSizedDataType for i32 {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Int,
-            size: 1
+            size: 1,
         }
     }
 }
@@ -87,7 +84,7 @@ impl<const N: usize> AsSizedDataType for [i32; N] {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Int,
-            size: N as _
+            size: N as _,
         }
     }
 }
@@ -96,7 +93,7 @@ impl AsSizedDataType for u32 {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::UnsignedInt,
-            size: 1
+            size: 1,
         }
     }
 }
@@ -105,7 +102,7 @@ impl<const N: usize> AsSizedDataType for [u32; N] {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::UnsignedInt,
-            size: N as _
+            size: N as _,
         }
     }
 }
@@ -114,7 +111,7 @@ impl AsSizedDataType for i16 {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Short,
-            size: 1
+            size: 1,
         }
     }
 }
@@ -123,7 +120,7 @@ impl<const N: usize> AsSizedDataType for [i16; N] {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Short,
-            size: N as _
+            size: N as _,
         }
     }
 }
@@ -132,7 +129,7 @@ impl AsSizedDataType for u16 {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::UnsignedShort,
-            size: 1
+            size: 1,
         }
     }
 }
@@ -141,7 +138,7 @@ impl<const N: usize> AsSizedDataType for [u16; N] {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::UnsignedShort,
-            size: N as _
+            size: N as _,
         }
     }
 }
@@ -150,7 +147,7 @@ impl AsSizedDataType for u8 {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::UnsignedByte,
-            size: 1
+            size: 1,
         }
     }
 }
@@ -159,7 +156,7 @@ impl<const N: usize> AsSizedDataType for [u8; N] {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::UnsignedByte,
-            size: N as _
+            size: N as _,
         }
     }
 }
@@ -168,7 +165,7 @@ impl AsSizedDataType for i8 {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Byte,
-            size: 1
+            size: 1,
         }
     }
 }
@@ -177,7 +174,7 @@ impl<const N: usize> AsSizedDataType for [i8; N] {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType {
             data_type: DataType::Byte,
-            size: N as _
+            size: N as _,
         }
     }
 }
