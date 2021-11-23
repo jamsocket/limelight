@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
-use web_sys::{WebGl2RenderingContext, WebGlBuffer};
-use crate::vertex_attribute::VertexAttribute;
+use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
+use crate::vertex_attribute::{VertexAttribute, bind_vertex_attributes};
 
 #[derive(Clone, Copy)]
 #[repr(u32)]
@@ -64,6 +64,7 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
                 self.capacity = self.data.len() as _;
             } else {
                 // Data fits in the current buffer, we just overwrite it.
+                gl.bind_buffer(self.bind_point as _, self.inner.as_ref());
 
                 gl.buffer_sub_data_with_i32_and_u8_array(
                     self.bind_point as _,
@@ -73,8 +74,9 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
             }
 
             self.dirty = false;
+        } else {
+            gl.bind_buffer(self.bind_point as _, self.inner.as_ref());
         }
-        gl.bind_buffer(self.bind_point as _, self.inner.as_ref());
     }
 
     pub fn set_data(&mut self, data: Vec<T>) {

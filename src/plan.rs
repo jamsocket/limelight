@@ -24,9 +24,3 @@ impl WebGlStateChange {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_simple_plan() {}
-}

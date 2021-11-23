@@ -21,7 +21,7 @@ pub trait VertexAttribute: bytemuck::Pod + bytemuck::Zeroable {
     fn describe() -> Vec<VertexAttributeBinding>;
 }
 
-pub fn bind(
+pub fn bind_vertex_attributes(
     bindings: &[VertexAttributeBinding],
     gl: &WebGl2RenderingContext,
     program: &WebGlProgram,
