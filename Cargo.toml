@@ -26,3 +26,4 @@ web-sys = { version="0.3.55", features = [
   'Window',
 ] }
 derive_vertex_attribute = { version="0.1.0", path="./derive_vertex_attribute" }
+anyhow = "1.0.48"

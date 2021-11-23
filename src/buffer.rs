@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
-use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
-use crate::vertex_attribute::{VertexAttribute, bind_vertex_attributes};
+use web_sys::{WebGl2RenderingContext, WebGlBuffer};
+use crate::vertex_attribute::{VertexAttribute};
 
 #[derive(Clone, Copy)]
 #[repr(u32)]
