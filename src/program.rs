@@ -1,6 +1,6 @@
 use crate::vertex_attribute::{VertexAttribute, VertexAttributeBinding};
 use anyhow::{anyhow, Result};
-use std::{cell::RefCell, marker::PhantomData, rc::Rc};
+use std::{cell::RefCell, fmt::Debug, marker::PhantomData, rc::Rc};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlVertexArrayObject};
 
 enum ProgramInner {
@@ -19,7 +19,18 @@ pub struct Program<T: VertexAttribute> {
     _ph: PhantomData<T>,
 }
 
-pub trait BindableProgram {
+impl<T: VertexAttribute> Debug for Program<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let compiled = match *self.inner.borrow() {
+            ProgramInner::Uncompiled {..} => false,
+            ProgramInner::Compiled {..} => true,
+        };
+
+        write!(f, "Program(compiled={})", compiled)
+    }
+}
+
+pub trait BindableProgram: core::fmt::Debug {
     fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
 
     fn boxed_clone(&self) -> Box<dyn BindableProgram>;
@@ -52,6 +63,7 @@ impl<T: VertexAttribute> BindableProgram for Rc<Program<T>> {
                 gl.attach_shader(&program, &vertex_shader);
 
                 gl.link_program(&program);
+                gl.use_program(Some(&program));
 
                 if !gl.get_program_parameter(&program, WebGl2RenderingContext::LINK_STATUS) {
                     if let Some(info) = gl.get_program_info_log(&program) {

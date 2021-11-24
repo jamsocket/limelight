@@ -1,6 +1,6 @@
-use std::{cell::RefCell, rc::Rc};
+use crate::vertex_attribute::VertexAttribute;
+use std::{cell::RefCell, fmt::Debug, rc::Rc};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
-use crate::vertex_attribute::{VertexAttribute};
 
 #[derive(Clone, Copy)]
 #[repr(u32)]
@@ -30,7 +30,21 @@ pub struct AttributeBuffer<T: VertexAttribute> {
     inner: RefCell<AttributeBufferInner<T>>,
 }
 
-pub trait BindableBuffer {
+impl<T: VertexAttribute> Debug for AttributeBuffer<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let inner = self.inner.borrow();
+        write!(
+            f,
+            "AttributeBuffer(bound={}, dirty={}, capacity={}, size={})",
+            !inner.buffer.is_none(),
+            inner.dirty,
+            inner.capacity,
+            inner.data.len()
+        )
+    }
+}
+
+pub trait BindableBuffer: Debug {
     fn bind(&self, gl: &WebGl2RenderingContext);
 
     fn len(&self) -> usize;
@@ -70,6 +84,7 @@ impl<T: VertexAttribute> BindableBuffer for Rc<AttributeBuffer<T>> {
                 );
 
                 inner.capacity = inner.data.len() as _;
+                inner.buffer = Some(buffer);
             } else {
                 // Data fits in the current buffer, we just overwrite it.
                 gl.bind_buffer(bind_point as _, inner.buffer.as_ref());
@@ -96,8 +111,8 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
                 capacity: 0,
                 usage,
                 data: Vec::new(),
-                dirty: true,   
-            })
+                dirty: true,
+            }),
         })
     }
 

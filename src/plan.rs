@@ -8,6 +8,7 @@ use crate::{
         State,
     },
     vertex_attribute::VertexAttribute,
+    console_log,
 };
 use std::rc::Rc;
 use web_sys::WebGl2RenderingContext;
@@ -38,6 +39,7 @@ impl Stage {
     }
 }
 
+#[derive(Debug)]
 pub enum RenderStep {
     Enable(EnableCap),
     Disable(EnableCap),
@@ -50,6 +52,8 @@ pub enum RenderStep {
 
 impl RenderStep {
     pub fn apply(&self, gl: &WebGl2RenderingContext) {
+        console_log!("Executing stage: {:?}", self);
+
         match self {
             Self::Enable(cap) => gl.enable(*cap as _),
             Self::Disable(cap) => gl.disable(*cap as _),
@@ -79,8 +83,8 @@ impl Renderer {
         let mut plan: Vec<RenderStep> = Vec::new();
 
         for stage in stages {
-            plan.push(RenderStep::SetProgram(stage.program));
             plan.push(RenderStep::SetBuffer(stage.buffer.boxed_clone()));
+            plan.push(RenderStep::SetProgram(stage.program));
             plan.push(RenderStep::DrawArrays(stage.buffer, stage.draw_mode));
         }
 

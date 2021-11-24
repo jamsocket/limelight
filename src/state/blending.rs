@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(u32)]
 pub enum BlendingFactorDest {
     Zero = 0,
@@ -17,7 +17,7 @@ impl Default for BlendingFactorDest {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(u32)]
 pub enum BlendingFactorSrc {
     Zero = 0,
@@ -37,7 +37,7 @@ impl Default for BlendingFactorSrc {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(u32)]
 pub enum BlendEquation {
     Add = 0x8006,

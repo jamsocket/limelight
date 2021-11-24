@@ -1,5 +1,5 @@
 #[repr(u32)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum DrawMode {
     Points = 0x0000,
     Lines = 0x0001,

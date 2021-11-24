@@ -1,4 +1,4 @@
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[repr(u32)]
 pub enum EnableCap {
     CullFace = 0x0B44,
