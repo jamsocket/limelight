@@ -13,11 +13,12 @@ use std::rc::Rc;
 use web_sys::WebGl2RenderingContext;
 
 pub struct Stage {
+    #[allow(unused)]
     state: State,
     draw_mode: DrawMode,
 
-    program: Rc<Box<dyn BindableProgram>>,
-    buffer: Rc<Box<dyn BindableBuffer>>,
+    program: Box<dyn BindableProgram>,
+    buffer: Box<dyn BindableBuffer>,
 }
 
 impl Stage {
@@ -27,7 +28,13 @@ impl Stage {
         state: State,
         draw_mode: DrawMode,
     ) -> Self {
-        todo!()
+        
+        Stage {
+            state,
+            draw_mode,
+            buffer: buffer.boxed_clone(),
+            program: program.boxed_clone(),
+        }
     }
 }
 
@@ -36,9 +43,9 @@ pub enum RenderStep {
     Disable(EnableCap),
     SetBlendEquation(BlendEquation),
     SetBlendFactor(BlendingFactorSrc, BlendingFactorDest),
-    SetProgram(Rc<Box<dyn BindableProgram>>),
-    SetBuffer(Rc<Box<dyn BindableBuffer>>),
-    DrawArrays(Rc<Box<dyn BindableBuffer>>, DrawMode),
+    SetProgram(Box<dyn BindableProgram>),
+    SetBuffer(Box<dyn BindableBuffer>),
+    DrawArrays(Box<dyn BindableBuffer>, DrawMode),
 }
 
 impl RenderStep {
@@ -73,7 +80,7 @@ impl Renderer {
 
         for stage in stages {
             plan.push(RenderStep::SetProgram(stage.program));
-            plan.push(RenderStep::SetBuffer(stage.buffer.clone()));
+            plan.push(RenderStep::SetBuffer(stage.buffer.boxed_clone()));
             plan.push(RenderStep::DrawArrays(stage.buffer, stage.draw_mode));
         }
 

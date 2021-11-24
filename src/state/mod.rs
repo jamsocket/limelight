@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use self::{blending::BlendFunction, culling::CullingMode, depth::DepthFunction};
 
 pub mod blending;

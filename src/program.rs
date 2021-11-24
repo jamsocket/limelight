@@ -21,9 +21,15 @@ pub struct Program<T: VertexAttribute> {
 
 pub trait BindableProgram {
     fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
+
+    fn boxed_clone(&self) -> Box<dyn BindableProgram>;
 }
 
-impl<T: VertexAttribute> BindableProgram for Program<T> {
+impl<T: VertexAttribute> BindableProgram for Rc<Program<T>> {
+    fn boxed_clone(&self) -> Box<dyn BindableProgram> {
+        Box::new(self.clone())
+    }
+
     fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
         let inner = self.inner.borrow_mut();
         match &*inner {

@@ -34,9 +34,15 @@ pub trait BindableBuffer {
     fn bind(&self, gl: &WebGl2RenderingContext);
 
     fn len(&self) -> usize;
+
+    fn boxed_clone(&self) -> Box<dyn BindableBuffer>;
 }
 
-impl<T: VertexAttribute> BindableBuffer for AttributeBuffer<T> {
+impl<T: VertexAttribute> BindableBuffer for Rc<AttributeBuffer<T>> {
+    fn boxed_clone(&self) -> Box<dyn BindableBuffer> {
+        Box::new(self.clone())
+    }
+
     fn len(&self) -> usize {
         self.inner.borrow().data.len()
     }
