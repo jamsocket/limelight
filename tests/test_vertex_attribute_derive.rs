@@ -1,8 +1,8 @@
 use gl_layers::types::{DataType, SizedDataType};
 use gl_layers::vertex_attribute::{VertexAttribute, VertexAttributeBinding};
+use gl_layers::vertex_attribute;
 
-#[repr(C)]
-#[derive(VertexAttribute, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[vertex_attribute]
 struct SimpleStruct {
     data: i32,
 }
@@ -18,8 +18,7 @@ fn test_describe_simple_derive() {
     );
 }
 
-#[repr(C)]
-#[derive(VertexAttribute, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[vertex_attribute]
 struct TwoFieldStruct {
     data1: f32,
     data2: u16,
@@ -38,8 +37,7 @@ fn test_describe_two_field_derive() {
     );
 }
 
-#[repr(C)]
-#[derive(VertexAttribute, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[vertex_attribute]
 struct ArrayStruct {
     array: [f32; 4],
 }
@@ -52,8 +50,7 @@ fn test_describe_array_field_derive() {
     );
 }
 
-#[repr(C)]
-#[derive(VertexAttribute, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[vertex_attribute]
 struct MultipleArrayStruct {
     a1: [u16; 4],
     b1: [i16; 4],

@@ -4,6 +4,19 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::ItemStruct;
 
+#[proc_macro_attribute]
+pub fn vertex_attribute(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let item: TokenStream = item.into();
+    
+    let r = quote! {
+        #[repr(C)]
+        #[derive(Clone, Copy, gl_layers::vertex_attribute::VertexAttribute, gl_layers::bytemuck::Pod, gl_layers::bytemuck::Zeroable)]
+        #item
+    };
+
+    r.into()
+}
+
 #[proc_macro_derive(VertexAttribute)]
 pub fn vertex_attribute_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     impl_vertex_attribute_derive(input.into()).into()

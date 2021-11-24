@@ -6,9 +6,9 @@ use gl_layers::state::State;
 use gl_layers::vertex_attribute::VertexAttribute;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
+use gl_layers::vertex_attribute;
 
-#[repr(C)]
-#[derive(VertexAttribute, bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
+#[vertex_attribute]
 struct VertexDescription {
     position: [f32; 2],
 }
