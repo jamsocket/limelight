@@ -52,7 +52,7 @@ pub enum RenderStep {
 
 impl RenderStep {
     pub fn apply(&self, gl: &WebGl2RenderingContext) {
-        console_log!("Executing stage: {:?}", self);
+        //console_log!("Executing stage: {:?}", self);
 
         match self {
             Self::Enable(cap) => gl.enable(*cap as _),
@@ -75,7 +75,13 @@ pub struct Renderer {
 impl Renderer {
     pub fn render(&self, gl: &WebGl2RenderingContext) {
         for task in &self.plan {
+            //console_log!("Running task {:?}", task);
             task.apply(gl);
+
+            let error = gl.get_error();
+            if error != WebGl2RenderingContext::NO_ERROR {
+                panic!("WebGL Error: {:?}", error);
+            }
         }
     }
 

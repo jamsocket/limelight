@@ -1,6 +1,7 @@
 use crate::vertex_attribute::VertexAttribute;
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
+use crate::console_log;
 
 #[derive(Clone, Copy)]
 #[repr(u32)]
@@ -66,11 +67,11 @@ impl<T: VertexAttribute> BindableBuffer for Rc<AttributeBuffer<T>> {
         let bind_point = BufferBindPoint::ArrayBuffer;
 
         if inner.dirty {
-            if let Some(old_buffer) = inner.buffer.take() {
-                gl.delete_buffer(Some(&old_buffer));
-            }
+            if inner.data.len() > inner.capacity as _ {
+                if let Some(old_buffer) = inner.buffer.take() {
+                    gl.delete_buffer(Some(&old_buffer));
+                }
 
-            if inner.data.len() * std::mem::size_of::<T>() > inner.capacity as _ {
                 // Data is too big for current buffer, we need to create a
                 // new one.
 
