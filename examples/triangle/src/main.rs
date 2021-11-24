@@ -19,20 +19,22 @@ impl VertexDescription {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    console_error_panic_hook::set_once();
-
+fn get_gl() -> WebGl2RenderingContext {
     let document = web_sys::window().unwrap().document().unwrap();
     let canvas = document.get_element_by_id("canvas").unwrap();
     let canvas: web_sys::HtmlCanvasElement =
         canvas.dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
 
-    let gl = canvas
+    canvas
         .get_context("webgl2")
         .unwrap()
         .unwrap()
         .dyn_into::<WebGl2RenderingContext>()
-        .unwrap();
+        .unwrap()
+}
+
+fn main() {
+    console_error_panic_hook::set_once();
 
     let buffer = AttributeBuffer::new(BufferUsageHint::StaticDraw);
     let program = Program::new(
@@ -49,7 +51,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         VertexDescription::new(0.5, 0.5),
     ]);
 
+    let gl = get_gl();
     renderer.render(&gl);
-
-    Ok(())
 }
