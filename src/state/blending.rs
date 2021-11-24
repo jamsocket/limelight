@@ -54,7 +54,7 @@ impl Default for BlendEquation {
 }
 
 #[derive(Default)]
-pub struct BlendFunc {
+pub struct BlendFunction {
     pub source_factor: BlendingFactorSrc,
     pub dst_factor: BlendingFactorDest,
     pub equation: BlendEquation,

@@ -1,12 +1,15 @@
-use crate::{buffer::AttributeBuffer, program::Program, vertex_attribute::VertexAttribute};
+use std::rc::Rc;
 
-use self::blending::BlendFunc;
+use self::{blending::BlendFunction, culling::CullingMode, depth::DepthFunction};
 
 pub mod blending;
 pub mod enable;
+pub mod culling;
+pub mod depth;
 
-pub struct Stage<T: VertexAttribute> {
-    pub blend_func: Option<BlendFunc>,
-    pub program: Program<T>,
-    pub buffer: AttributeBuffer<T>,
+#[derive(Default)]
+pub struct State {
+    pub blend_func: Option<BlendFunction>,
+    pub culling: Option<CullingMode>,
+    pub depth_func: Option<DepthFunction>,
 }

@@ -5,3 +5,4 @@ pub mod types;
 pub mod vertex_attribute;
 pub mod layer;
 pub mod program;
+pub mod draw_modes;

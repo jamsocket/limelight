@@ -1,9 +1,9 @@
 use crate::vertex_attribute::{VertexAttribute, VertexAttributeBinding};
 use anyhow::{anyhow, Result};
-use std::marker::PhantomData;
+use std::{cell::RefCell, marker::PhantomData, rc::Rc};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlVertexArrayObject};
 
-pub enum Program<T: VertexAttribute> {
+enum ProgramInner {
     Uncompiled {
         frag_shader_src: String,
         vert_shader_src: String,
@@ -11,32 +11,32 @@ pub enum Program<T: VertexAttribute> {
     Compiled {
         program: WebGlProgram,
         vao: WebGlVertexArrayObject,
-        _ph: PhantomData<T>,
     },
 }
 
-impl<T: VertexAttribute> Program<T> {
-    pub fn new(frag_shader: &str, vert_shader: &str) -> Self {
-        Program::Uncompiled {
-            frag_shader_src: frag_shader.to_string(),
-            vert_shader_src: vert_shader.to_string(),
-        }
-    }
+pub struct Program<T: VertexAttribute> {
+    inner: RefCell<ProgramInner>,
+    _ph: PhantomData<T>,
+}
 
-    pub fn bind(&mut self, gl: &WebGl2RenderingContext) -> Result<()> {
-        match self {
-            Program::Compiled { program, vao, .. } => {
-                gl.use_program(Some(program));
-                gl.bind_vertex_array(Some(vao));
+pub trait BindableProgram {
+    fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
+}
+
+impl<T: VertexAttribute> BindableProgram for Program<T> {
+    fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
+        let inner = self.inner.borrow_mut();
+        match &*inner {
+            ProgramInner::Compiled { program, vao, .. } => {
+                gl.use_program(Some(&program));
+                gl.bind_vertex_array(Some(&vao));
             }
-            Program::Uncompiled {
+            ProgramInner::Uncompiled {
                 vert_shader_src,
                 frag_shader_src,
             } => {
-                let frag_shader =
-                    compile_shader(gl, ShaderType::FragmentShader, &frag_shader_src)?;
-                let vertex_shader =
-                    compile_shader(gl, ShaderType::VertexShader, &vert_shader_src)?;
+                let frag_shader = compile_shader(gl, ShaderType::FragmentShader, &frag_shader_src)?;
+                let vertex_shader = compile_shader(gl, ShaderType::VertexShader, &vert_shader_src)?;
 
                 let program = gl
                     .create_program()
@@ -62,15 +62,27 @@ impl<T: VertexAttribute> Program<T> {
                 gl.bind_vertex_array(Some(&vao));
                 bind_vertex_attributes(&T::describe(), &gl, &program)?;
 
-                *self = Program::Compiled {
+                drop(inner);
+                self.inner.replace(ProgramInner::Compiled {
                     program,
                     vao,
-                    _ph: PhantomData::default(),
-                }
+                });
             }
         }
 
         Ok(())
+    }
+}
+
+impl<T: VertexAttribute> Program<T> {
+    pub fn new(frag_shader: &str, vert_shader: &str) -> Rc<Self> {
+        Rc::new(Program {
+            inner: RefCell::new(ProgramInner::Uncompiled {
+                frag_shader_src: frag_shader.to_string(),
+                vert_shader_src: vert_shader.to_string(),
+            }),
+            _ph: PhantomData::default(),
+        })
     }
 }
 
