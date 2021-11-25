@@ -1,10 +1,8 @@
-use std::rc::Rc;
-
 use gl_layers::buffer::{AttributeBuffer, BufferUsageHint};
 use gl_layers::draw_modes::DrawMode;
-use gl_layers::plan::{Renderer, Stage};
-use gl_layers::program::Program;
-use gl_layers::state::State;
+use gl_layers::gpu_init::GpuInit;
+use gl_layers::program::{GlProgram, Program};
+use gl_layers::renderer::Renderer;
 use gl_layers::vertex_attribute;
 use gl_layers::vertex_attribute::VertexAttribute;
 use wasm_bindgen::JsCast;
@@ -12,6 +10,13 @@ use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
+
+macro_rules! console_log {
+    ($($x: expr), +) => (
+        web_sys::console::log_1(&wasm_bindgen::JsValue::from(
+            format!($($x),+)));
+    )
+}
 
 #[vertex_attribute]
 struct VertexDescription {
@@ -30,10 +35,10 @@ enum Msg {
 
 struct Model {
     link: ComponentLink<Self>,
-    buffer: Rc<AttributeBuffer<VertexDescription>>,
+    buffer: AttributeBuffer<VertexDescription>,
     canvas_ref: NodeRef,
-    renderer: Renderer,
-    gl: Option<WebGl2RenderingContext>,
+    renderer: Option<Renderer>,
+    program: Option<GlProgram<VertexDescription>>,
     render_handle: Option<RenderTask>,
 }
 
@@ -43,24 +48,14 @@ impl Component for Model {
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let buffer = AttributeBuffer::new(BufferUsageHint::StaticDraw);
-        let program = Program::new(
-            include_str!("../shaders/shader.frag"),
-            include_str!("../shaders/shader.vert"),
-        );
-        let renderer = Renderer::new(vec![Stage::new(
-            program,
-            buffer.clone(),
-            State::default(),
-            DrawMode::Triangles,
-        )]);
 
         Self {
             link,
             buffer,
             canvas_ref: NodeRef::default(),
-            renderer,
-            gl: None,
             render_handle: None,
+            renderer: None,
+            program: None,
         }
     }
 
@@ -73,7 +68,24 @@ impl Component for Model {
             .dyn_into()
             .unwrap();
 
-        self.gl = Some(gl);
+        // self.buffer.set_data(vec![
+        //     VertexDescription::new(-0.5, -0.5),
+        //     VertexDescription::new(0.5, -0.5),
+        //     VertexDescription::new(0.5, 0.5),
+        // ]);
+        //self.buffer.gpu_bind(&gl);
+        self.program = Some(
+            Program::new(
+                include_str!("../shaders/shader.frag"),
+                include_str!("../shaders/shader.vert"),
+                DrawMode::Triangles,
+            )
+            .gpu_init(&gl)
+            .unwrap(),
+        );
+
+        self.renderer = Some(Renderer::new(gl));
+
         self.render_handle = Some(RenderService::request_animation_frame(
             self.link.callback(Msg::Render),
         ));
@@ -85,17 +97,25 @@ impl Component for Model {
                 let ts = ts / 1000.;
                 self.buffer.set_data(vec![
                     VertexDescription::new(-0.5 * ts.cos() as f32, -0.5 * ts.sin() as f32),
-                    VertexDescription::new(0.5 * (ts/3.).cos() as f32, -0.5 * (ts/5.).cos() as f32),
-                    VertexDescription::new(0.5, 0.5),        
+                    VertexDescription::new(
+                        0.5 * (ts / 3.).cos() as f32,
+                        -0.5 * (ts / 5.).cos() as f32,
+                    ),
+                    VertexDescription::new(0.5, 0.5),
                 ]);
 
-                if let Some(gl) = self.gl.as_ref() {
-                    self.renderer.render(gl);
+                if let Some(renderer) = self.renderer.as_ref() {
+                    console_log!("here1");
+                    renderer
+                        .render(self.program.as_mut().unwrap(), &mut self.buffer)
+                        .unwrap();
+                    renderer.get_error().unwrap();
+                    console_log!("here2");
                 }
 
                 self.render_handle = Some(RenderService::request_animation_frame(
-                    self.link.callback(Msg::Render)
-                ));        
+                    self.link.callback(Msg::Render),
+                ));
             }
         }
 

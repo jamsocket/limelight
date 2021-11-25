@@ -1,106 +1,121 @@
-use crate::vertex_attribute::{VertexAttribute, VertexAttributeBinding};
+use crate::{
+    draw_modes::DrawMode,
+    gpu_init::{GpuBind, GpuInit},
+    uniform::{BindableUniform, Uniform, UniformValue},
+    vertex_attribute::VertexAttribute,
+};
 use anyhow::{anyhow, Result};
-use std::{cell::RefCell, fmt::Debug, marker::PhantomData, rc::Rc};
-use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlVertexArrayObject};
-
-enum ProgramInner {
-    Uncompiled {
-        frag_shader_src: String,
-        vert_shader_src: String,
-    },
-    Compiled {
-        program: WebGlProgram,
-        vao: WebGlVertexArrayObject,
-    },
-}
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    fmt::Debug,
+    marker::PhantomData,
+    rc::Rc,
+};
+use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlUniformLocation};
 
 pub struct Program<T: VertexAttribute> {
-    inner: RefCell<ProgramInner>,
+    frag_shader_src: String,
+    vert_shader_src: String,
+    uniforms: HashMap<String, Box<dyn BindableUniform>>,
+    draw_mode: DrawMode,
     _ph: PhantomData<T>,
 }
 
-impl<T: VertexAttribute> Debug for Program<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let compiled = match *self.inner.borrow() {
-            ProgramInner::Uncompiled {..} => false,
-            ProgramInner::Compiled {..} => true,
-        };
+impl<T: VertexAttribute> GpuInit for Program<T> {
+    type Output = GlProgram<T>;
 
-        write!(f, "Program(compiled={})", compiled)
-    }
-}
+    fn gpu_init(self, gl: &WebGl2RenderingContext) -> Result<GlProgram<T>> {
+        let frag_shader = compile_shader(gl, ShaderType::FragmentShader, &self.frag_shader_src)?;
+        let vertex_shader = compile_shader(gl, ShaderType::VertexShader, &self.vert_shader_src)?;
 
-pub trait BindableProgram: core::fmt::Debug {
-    fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
+        let program = gl
+            .create_program()
+            .ok_or_else(|| anyhow!("Error creating program."))?;
 
-    fn boxed_clone(&self) -> Box<dyn BindableProgram>;
-}
+        gl.attach_shader(&program, &frag_shader);
+        gl.attach_shader(&program, &vertex_shader);
 
-impl<T: VertexAttribute> BindableProgram for Rc<Program<T>> {
-    fn boxed_clone(&self) -> Box<dyn BindableProgram> {
-        Box::new(self.clone())
-    }
+        gl.link_program(&program);
+        gl.use_program(Some(&program));
 
-    fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-        let inner = self.inner.borrow_mut();
-        match &*inner {
-            ProgramInner::Compiled { program, vao, .. } => {
-                gl.use_program(Some(&program));
-                gl.bind_vertex_array(Some(&vao));
-            }
-            ProgramInner::Uncompiled {
-                vert_shader_src,
-                frag_shader_src,
-            } => {
-                let frag_shader = compile_shader(gl, ShaderType::FragmentShader, &frag_shader_src)?;
-                let vertex_shader = compile_shader(gl, ShaderType::VertexShader, &vert_shader_src)?;
-
-                let program = gl
-                    .create_program()
-                    .ok_or_else(|| anyhow!("Error creating program."))?;
-
-                gl.attach_shader(&program, &frag_shader);
-                gl.attach_shader(&program, &vertex_shader);
-
-                gl.link_program(&program);
-                gl.use_program(Some(&program));
-
-                if !gl.get_program_parameter(&program, WebGl2RenderingContext::LINK_STATUS) {
-                    if let Some(info) = gl.get_program_info_log(&program) {
-                        return Err(anyhow!("Encountered error linking program: {}", info));
-                    } else {
-                        return Err(anyhow!("Encountered unknown error linking program."));
-                    }
-                }
-
-                let vao = gl
-                    .create_vertex_array()
-                    .ok_or_else(|| anyhow!("Couldn't create vertex array."))?;
-
-                gl.bind_vertex_array(Some(&vao));
-                bind_vertex_attributes(&T::describe(), &gl, &program)?;
-
-                drop(inner);
-                self.inner.replace(ProgramInner::Compiled {
-                    program,
-                    vao,
-                });
+        if !gl.get_program_parameter(&program, WebGl2RenderingContext::LINK_STATUS) {
+            if let Some(info) = gl.get_program_info_log(&program) {
+                return Err(anyhow!("Encountered error linking program: {}", info));
+            } else {
+                return Err(anyhow!("Encountered unknown error linking program."));
             }
         }
+
+        let mut uniforms = Vec::new();
+        for (name, value) in self.uniforms {
+            let location = gl
+                .get_uniform_location(&program, &name)
+                .ok_or_else(|| anyhow!("Could not find uniform with name {}", name))?;
+
+            uniforms.push((location, value));
+        }
+
+        Ok(GlProgram {
+            program,
+            uniforms,
+            draw_mode: self.draw_mode,
+            _ph: PhantomData::default(),
+        })
+    }
+}
+
+impl<T: VertexAttribute> Program<T> {
+    pub fn new(frag_shader_src: &str, vert_shader_src: &str, draw_mode: DrawMode) -> Self {
+        Program {
+            frag_shader_src: frag_shader_src.to_string(),
+            vert_shader_src: vert_shader_src.to_string(),
+            uniforms: HashMap::new(),
+            draw_mode,
+            _ph: PhantomData::default(),
+        }
+    }
+
+    pub fn with_uniform<U: UniformValue>(
+        &mut self,
+        name: &str,
+        uniform: Rc<Uniform<U>>,
+    ) -> &mut Self {
+        match self.uniforms.entry(name.to_string()) {
+            Entry::Occupied(_) => panic!("Tried to set uniform {} more than once.", name),
+            Entry::Vacant(e) => e.insert(Box::new(uniform)),
+        };
+        self
+    }
+}
+
+#[derive(Debug)]
+pub struct GlProgram<T: VertexAttribute> {
+    program: WebGlProgram,
+    uniforms: Vec<(WebGlUniformLocation, Box<dyn BindableUniform>)>,
+    draw_mode: DrawMode,
+    _ph: PhantomData<T>,
+}
+
+impl<T: VertexAttribute> GpuBind for GlProgram<T> {
+    fn gpu_bind(&mut self, gl: &WebGl2RenderingContext) -> Result<()> {
+        crate::console_log!("Binding program.");
+        gl.use_program(Some(&self.program));
+        crate::console_log!("Bound program.");
+
+        // Bind uniforms.
+        for (location, uniform) in &self.uniforms {
+            uniform.bind(gl, location);
+        }
+
+        crate::console_log!("Bound blah.");
 
         Ok(())
     }
 }
 
-impl<T: VertexAttribute> Program<T> {
-    pub fn new(frag_shader: &str, vert_shader: &str) -> Rc<Self> {
-        Rc::new(Program {
-            inner: RefCell::new(ProgramInner::Uncompiled {
-                frag_shader_src: frag_shader.to_string(),
-                vert_shader_src: vert_shader.to_string(),
-            }),
-            _ph: PhantomData::default(),
-        })
+impl<T: VertexAttribute> GlProgram<T> {
+    pub fn draw_mode(&self) -> DrawMode {
+        self.draw_mode
     }
 }
 
@@ -134,37 +149,4 @@ fn compile_shader(
             .map(|d| anyhow!("Error compiling shader {}", d))
             .unwrap_or_else(|| anyhow!("Unknown error compiling shader.")))
     }
-}
-
-pub fn bind_vertex_attributes(
-    bindings: &[VertexAttributeBinding],
-    gl: &WebGl2RenderingContext,
-    program: &WebGlProgram,
-) -> Result<()> {
-    let mut offset: i32 = 0;
-    let stride = bindings.iter().map(|d| d.kind.byte_size()).sum();
-
-    for binding in bindings {
-        let location = gl.get_attrib_location(program, &binding.variable_name);
-        if location == -1 {
-            return Err(anyhow!(
-                "Expected the program to have a variable called {}, but one was not found.",
-                binding.variable_name
-            ));
-        }
-
-        gl.vertex_attrib_pointer_with_i32(
-            location as _,
-            binding.kind.size(),
-            binding.kind.data_type() as _,
-            false,
-            stride,
-            offset,
-        );
-        gl.enable_vertex_attrib_array(location as _);
-
-        offset += binding.kind.byte_size();
-    }
-
-    Ok(())
 }

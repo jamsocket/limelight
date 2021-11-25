@@ -1,6 +1,6 @@
 use gl_layers::types::{DataType, SizedDataType};
-use gl_layers::vertex_attribute::{VertexAttribute, VertexAttributeBinding};
 use gl_layers::vertex_attribute;
+use gl_layers::vertex_attribute::{VertexAttribute, VertexAttributeBinding};
 
 #[vertex_attribute]
 struct SimpleStruct {

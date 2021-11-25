@@ -5,4 +5,3 @@ pub enum CullingMode {
     Back = 0x0405,
     FrontAndBack = 0x0408,
 }
-
