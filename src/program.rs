@@ -35,6 +35,10 @@ impl<T: VertexAttribute> GpuInit for Program<T> {
         gl.attach_shader(&program, &frag_shader);
         gl.attach_shader(&program, &vertex_shader);
 
+        for (location, attr) in T::describe().iter().enumerate() {
+            gl.bind_attrib_location(&program, location as _, &attr.variable_name);
+        }
+
         gl.link_program(&program);
         gl.use_program(Some(&program));
 
