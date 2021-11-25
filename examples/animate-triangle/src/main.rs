@@ -68,12 +68,6 @@ impl Component for Model {
             .dyn_into()
             .unwrap();
 
-        // self.buffer.set_data(vec![
-        //     VertexDescription::new(-0.5, -0.5),
-        //     VertexDescription::new(0.5, -0.5),
-        //     VertexDescription::new(0.5, 0.5),
-        // ]);
-        //self.buffer.gpu_bind(&gl);
         self.program = Some(
             Program::new(
                 include_str!("../shaders/shader.frag"),
@@ -105,12 +99,10 @@ impl Component for Model {
                 ]);
 
                 if let Some(renderer) = self.renderer.as_ref() {
-                    console_log!("here1");
                     renderer
                         .render(self.program.as_mut().unwrap(), &mut self.buffer)
                         .unwrap();
                     renderer.get_error().unwrap();
-                    console_log!("here2");
                 }
 
                 self.render_handle = Some(RenderService::request_animation_frame(

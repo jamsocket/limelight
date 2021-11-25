@@ -99,7 +99,6 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
 
         let buffer = gl.create_buffer().unwrap();
         gl.bind_buffer(BIND_POINT as _, Some(&buffer));
-        crate::console_log!("Bound buffer.");
 
         gl.buffer_data_with_u8_array(
             BIND_POINT as _,

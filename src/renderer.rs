@@ -21,10 +21,8 @@ impl Renderer {
     ) -> Result<()> {
         buffer.gpu_bind(&self.gl)?;
         program.gpu_bind(&self.gl)?;
-        crate::console_log!("Pre draw.");
         self.gl
             .draw_arrays(program.draw_mode() as _, 0, buffer.len() as _);
-        crate::console_log!("Post draw.");
 
         Ok(())
     }

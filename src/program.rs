@@ -102,16 +102,12 @@ pub struct GlProgram<T: VertexAttribute> {
 
 impl<T: VertexAttribute> GpuBind for GlProgram<T> {
     fn gpu_bind(&mut self, gl: &WebGl2RenderingContext) -> Result<()> {
-        crate::console_log!("Binding program.");
         gl.use_program(Some(&self.program));
-        crate::console_log!("Bound program.");
 
         // Bind uniforms.
         for (location, uniform) in &self.uniforms {
             uniform.bind(gl, location);
         }
-
-        crate::console_log!("Bound blah.");
 
         Ok(())
     }
