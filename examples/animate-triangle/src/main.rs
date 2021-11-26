@@ -40,7 +40,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let buffer = AttributeBuffer::new(BufferUsageHint::StaticDraw);
+        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
 
         Self {
             link,

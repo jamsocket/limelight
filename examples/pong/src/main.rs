@@ -173,7 +173,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let buffer = AttributeBuffer::new(BufferUsageHint::StaticDraw);
+        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
         let state = GameState::default();
         let key_down_handle =
             KeyboardService::register_key_down(&yew::utils::window(), link.callback(Msg::KeyDown));

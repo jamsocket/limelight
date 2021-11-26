@@ -3,9 +3,17 @@ use crate::{
     vertex_attribute::{VertexAttribute, VertexAttributeBinding},
 };
 use anyhow::{anyhow, Result};
-use std::{cell::RefCell, fmt::Debug};
+use std::{cell::{RefCell, RefMut}, fmt::Debug};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
+pub trait BufferLike<T: VertexAttribute>: GpuBind {
+    fn len(&self) -> usize;
+}
+
+/// Enum of WebGL Bind Points.
+/// 
+/// Each bind point is a global bind point in WebGL that can have an
+/// array bound to it.
 #[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum BufferBindPoint {
@@ -13,11 +21,21 @@ pub enum BufferBindPoint {
     ElementArrayBuffer = 0x8893,
 }
 
+/// Usage hint to tell WebGL how a buffer will be used.
+/// 
+/// These hints are non-binding; you can read/write from a
+/// buffer as much as you like regardless of the hint. However,
+/// a driver may use the hint to optimize memory layout.
 #[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum BufferUsageHint {
+    /// Hint that a buffer is written to once and read once.
     StreamDraw = 0x88E0,
+
+    /// Hint that a buffer is written to once and ready many times.
     StaticDraw = 0x88E4,
+
+    /// Hint that a buffer is written and read many times.
     DynamicDraw = 0x88E8,
 }
 
@@ -25,13 +43,14 @@ struct BoundBuffer {
     buffer: WebGlBuffer,
     vao: WebGlVertexArrayObject,
     capacity: u32,
+    dirty: bool,
 }
 
+/// Represents a buffer used to store vertex attributes of a given type.
 pub struct AttributeBuffer<T: VertexAttribute> {
     bound_buffer: RefCell<Option<BoundBuffer>>,
     usage: BufferUsageHint,
     data: Vec<T>,
-    dirty: bool,
 }
 
 impl<T: VertexAttribute> Debug for AttributeBuffer<T> {
@@ -42,7 +61,7 @@ impl<T: VertexAttribute> Debug for AttributeBuffer<T> {
             f,
             "AttributeBuffer(bound={}, dirty={}, capacity={}, size={})",
             !bound_buffer.is_none(),
-            self.dirty,
+            bound_buffer.as_ref().map(|d| d.dirty).unwrap_or_default(),
             bound_buffer
                 .as_ref()
                 .map(|d| d.capacity)
@@ -56,14 +75,15 @@ const BIND_POINT: BufferBindPoint = BufferBindPoint::ArrayBuffer;
 
 impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-        let buffer_ref = self.bound_buffer.borrow();
+        let mut buffer_ref = self.bound_buffer.borrow_mut();
         if let Some(BoundBuffer {
             buffer,
             vao,
             capacity,
-        }) = &*buffer_ref
+            dirty,
+        }) = &mut*buffer_ref
         {
-            if !self.dirty {
+            if !*dirty {
                 // Bind buffer.
                 gl.bind_vertex_array(Some(vao));
             } else if self.data.len() > *capacity as _ {
@@ -72,8 +92,8 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
                 gl.delete_buffer(Some(&buffer));
                 gl.delete_vertex_array(Some(&vao));
 
-                drop(buffer_ref); // Free the borrow, because we need a mutable borrow.
-                self.create_and_bind_buffer(gl)?;
+                *dirty = false;
+                self.create_and_bind_buffer(gl, buffer_ref)?;
             } else {
                 // Reuse buffer.
                 gl.bind_vertex_array(Some(&vao));
@@ -83,19 +103,26 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
                     0,
                     bytemuck::cast_slice(&self.data),
                 );
+
+                *dirty = false;
             }
         } else {
             // Create buffer.
-            drop(buffer_ref); // Free the borrow, because we need a mutable borrow.
-            self.create_and_bind_buffer(gl)?;
+            self.create_and_bind_buffer(gl, buffer_ref)?;
         }
 
         Ok(())
     }
 }
 
+impl<T: VertexAttribute> BufferLike<T> for AttributeBuffer<T> {
+    fn len(&self) -> usize {
+        self.data.len()
+    }
+}
+
 impl<T: VertexAttribute> AttributeBuffer<T> {
-    fn create_and_bind_buffer(&self, gl: &WebGl2RenderingContext) -> Result<()> {
+    fn create_and_bind_buffer(&self, gl: &WebGl2RenderingContext, mut buffer_ref: RefMut<Option<BoundBuffer>>) -> Result<()> {
         let vao = gl
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Couldn't create vertex array."))?;
@@ -112,11 +139,12 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
 
         bind_vertex_attributes(&T::describe(), &gl);
 
-        self.bound_buffer.replace(Some(BoundBuffer {
+        *buffer_ref = Some(BoundBuffer {
             vao,
             buffer,
             capacity: self.data.len() as _,
-        }));
+            dirty: false,
+        });
 
         Ok(())
     }
@@ -126,25 +154,22 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
             bound_buffer: RefCell::new(None),
             usage,
             data: Vec::new(),
-            dirty: true,
         }
     }
 
     pub fn set_data(&mut self, data: Vec<T>) {
         self.data = data;
-        self.dirty = true;
+        if let Some(buffer) = &mut*self.bound_buffer.borrow_mut() {
+            buffer.dirty = true;
+        }
     }
 
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
-
-    pub fn len(&self) -> usize {
-        self.data.len()
-    }
 }
 
-pub fn bind_vertex_attributes(bindings: &[VertexAttributeBinding], gl: &WebGl2RenderingContext) {
+fn bind_vertex_attributes(bindings: &[VertexAttributeBinding], gl: &WebGl2RenderingContext) {
     let mut offset: i32 = 0;
     let stride = bindings.iter().map(|d| d.kind.byte_size()).sum();
 
@@ -161,4 +186,32 @@ pub fn bind_vertex_attributes(bindings: &[VertexAttributeBinding], gl: &WebGl2Re
 
         offset += binding.kind.byte_size();
     }
+}
+
+pub struct DummyBuffer {
+    size: usize
+}
+
+impl DummyBuffer {
+    pub fn new(size: usize) -> Self {
+        DummyBuffer { size }
+    }
+}
+
+impl BufferLike<()> for DummyBuffer {
+    fn len(&self) -> usize {
+        self.size
+    }
+}
+
+impl GpuBind for DummyBuffer {
+    fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
+        gl.bind_vertex_array(None);
+        Ok(())
+    }
+}
+
+
+impl VertexAttribute for () {
+    fn describe() -> Vec<VertexAttributeBinding> { vec![] }
 }

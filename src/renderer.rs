@@ -1,7 +1,4 @@
-use crate::{
-    buffer::AttributeBuffer, gpu_init::GpuBind, program::GlProgram,
-    vertex_attribute::VertexAttribute,
-};
+use crate::{buffer::BufferLike, gpu_init::GpuBind, program::GlProgram, vertex_attribute::VertexAttribute};
 use anyhow::{anyhow, Result};
 use web_sys::WebGl2RenderingContext;
 
@@ -17,7 +14,7 @@ impl Renderer {
     pub fn render<T: VertexAttribute>(
         &self,
         program: &GlProgram<T>,
-        buffer: &AttributeBuffer<T>,
+        buffer: &impl BufferLike<T>,
     ) -> Result<()> {
         buffer.gpu_bind(&self.gl)?;
         program.gpu_bind(&self.gl)?;

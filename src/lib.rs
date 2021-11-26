@@ -1,8 +1,6 @@
 pub mod buffer;
 pub mod draw_modes;
 pub mod gpu_init;
-pub mod layer;
-pub mod plan;
 pub mod program;
 pub mod renderer;
 pub mod state;
