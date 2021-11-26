@@ -1,0 +1,41 @@
+name: Deploy Demos
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build
+    - name: Install Trunk
+      run: cargo install trunk
+    - name: Install wasm32 target
+      run: rustup target add wasm32-unknown-unknown
+    - name: Install wasm-pack
+      run: cargo install wasm-pack
+    - name: Install wasm-bindgen
+      run: cargo install -f wasm-bindgen-cli
+    - name: Build demos
+      run: |
+        mkdir dist
+        cd examples
+        for DEMO_DIR in $(ls -d */)
+        do
+          cd "${DEMO_DIR}"
+          trunk build --public-url="/limelight/${DEMO_DIR}/"
+          mv dist "../../dist/${DEMO_DIR}"
+          cd ../
+        done
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@4.1.4
+      with:
+        branch: gh-pages
+        folder: dist
