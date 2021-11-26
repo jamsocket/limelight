@@ -54,12 +54,12 @@ impl UniformValue for [f32; 2] {
     }
 }
 
-// TODO: implement more uniform types.
-// https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/uniform
-// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniform
-
 impl UniformValue for i32 {
     fn bind(&self, gl: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
         gl.uniform1i(Some(location), *self);
     }
 }
+
+// TODO: implement more uniform types.
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/uniform
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniform

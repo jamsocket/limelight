@@ -80,10 +80,10 @@ impl<T: VertexAttribute> Program<T> {
     }
 
     pub fn with_uniform<U: UniformValue>(
-        &mut self,
+        mut self,
         name: &str,
         uniform: Rc<Uniform<U>>,
-    ) -> &mut Self {
+    ) -> Self {
         match self.uniforms.entry(name.to_string()) {
             Entry::Occupied(_) => panic!("Tried to set uniform {} more than once.", name),
             Entry::Vacant(e) => e.insert(Box::new(uniform)),
