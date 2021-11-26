@@ -2,6 +2,11 @@
 name = "limelight"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/drifting-in-space/limelight"
+description = "WebGL2 wrapper with a focus on making high-performance graphics code easier to write and maintain"
+license = "MIT"
+readme = "README.md"
+keywords = ["webgl"]
 
 [dependencies]
 bytemuck = { version = "1.7.2", features = ["derive"] }
