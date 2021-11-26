@@ -11,13 +11,6 @@ use yew::services::render::RenderTask;
 use yew::services::RenderService;
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 
-macro_rules! console_log {
-    ($($x: expr), +) => (
-        web_sys::console::log_1(&wasm_bindgen::JsValue::from(
-            format!($($x),+)));
-    )
-}
-
 #[vertex_attribute]
 struct VertexDescription {
     position: [f32; 2],
@@ -90,12 +83,9 @@ impl Component for Model {
             Msg::Render(ts) => {
                 let ts = ts / 1000.;
                 self.buffer.set_data(vec![
-                    VertexDescription::new(-0.5 * ts.cos() as f32, -0.5 * ts.sin() as f32),
-                    VertexDescription::new(
-                        0.5 * (ts / 3.).cos() as f32,
-                        -0.5 * (ts / 5.).cos() as f32,
-                    ),
-                    VertexDescription::new(0.5, 0.5),
+                    VertexDescription::new(0.5 * ts.cos() as f32, 0.5 * ts.sin() as f32),
+                    VertexDescription::new(0.5 * (ts + 2.0).cos() as f32, 0.5 * (ts + 2.0).sin() as f32),
+                    VertexDescription::new(0.5 * (ts + 4.0).cos() as f32, 0.5 * (ts + 4.0).sin() as f32),                    
                 ]);
 
                 if let Some(renderer) = self.renderer.as_ref() {
