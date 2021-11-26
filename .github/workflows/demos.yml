@@ -16,7 +16,7 @@ jobs:
     - name: Build
       run: cargo build
     - name: Install Trunk
-      run: cargo install trunk
+      run: wget -qO- https://github.com/thedodd/trunk/releases/download/${VERSION}/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
     - name: Install wasm32 target
       run: rustup target add wasm32-unknown-unknown
     - name: Install wasm-pack
