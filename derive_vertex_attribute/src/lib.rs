@@ -45,7 +45,7 @@ fn impl_vertex_attribute_derive(input: TokenStream) -> TokenStream {
     };
 
     quote! {
-        impl VertexAttribute for #name {
+        impl gl_layers::vertex_attribute::VertexAttribute for #name {
             fn describe() -> Vec<gl_layers::vertex_attribute::VertexAttributeBinding> {
                 vec![
                     #(#bindings),*

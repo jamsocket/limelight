@@ -1,6 +1,6 @@
 use crate::{
     draw_modes::DrawMode,
-    gpu_init::{GpuBind, GpuInit},
+    gpu_init::{GpuBind},
     uniform::{BindableUniform, Uniform, UniformValue},
     vertex_attribute::VertexAttribute,
 };
@@ -21,10 +21,18 @@ pub struct Program<T: VertexAttribute> {
     _ph: PhantomData<T>,
 }
 
-impl<T: VertexAttribute> GpuInit for Program<T> {
-    type Output = GlProgram<T>;
+impl<T: VertexAttribute> Program<T> {
+    pub fn new(frag_shader_src: &str, vert_shader_src: &str, draw_mode: DrawMode) -> Self {
+        Program {
+            frag_shader_src: frag_shader_src.to_string(),
+            vert_shader_src: vert_shader_src.to_string(),
+            uniforms: HashMap::new(),
+            draw_mode,
+            _ph: PhantomData::default(),
+        }
+    }
 
-    fn gpu_init(self, gl: &WebGl2RenderingContext) -> Result<GlProgram<T>> {
+    pub fn gpu_init(self, gl: &WebGl2RenderingContext) -> Result<GlProgram<T>> {
         let frag_shader = compile_shader(gl, ShaderType::FragmentShader, &self.frag_shader_src)?;
         let vertex_shader = compile_shader(gl, ShaderType::VertexShader, &self.vert_shader_src)?;
 
@@ -65,18 +73,6 @@ impl<T: VertexAttribute> GpuInit for Program<T> {
             draw_mode: self.draw_mode,
             _ph: PhantomData::default(),
         })
-    }
-}
-
-impl<T: VertexAttribute> Program<T> {
-    pub fn new(frag_shader_src: &str, vert_shader_src: &str, draw_mode: DrawMode) -> Self {
-        Program {
-            frag_shader_src: frag_shader_src.to_string(),
-            vert_shader_src: vert_shader_src.to_string(),
-            uniforms: HashMap::new(),
-            draw_mode,
-            _ph: PhantomData::default(),
-        }
     }
 
     pub fn with_uniform<U: UniformValue>(

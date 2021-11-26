@@ -16,4 +16,80 @@ In particular, it:
 
 See the [examples](examples) directory for full examples.
 
+### Drawing a triangle
+
+```rust
+use web_sys::WebGl2RenderingContext;
+use gl_layers::{Program, Renderer, DummyBuffer, DrawMode};
+
+fn render_triangle(gl: WebGl2RenderingContext) {
+  // {{name}} doesn't touch the DOM at all. Use your preferred
+  // framework to create a canvas and create a WebGL2 context
+  // from it.
+
+  // Create a shader program by passing in GLSL code as strings for
+  // the fragment and vertex shaders.
+  let program = Program::new(
+      include_str!("../examples/dummy-triangle/shaders/shader.frag"),
+      include_str!("../examples/dummy-triangle/shaders/shader.vert"),
+      DrawMode::Triangles
+  ).gpu_init(&gl).unwrap();
+
+  // Create a renderer. The renderer becomes the owner of the
+  // WebGl2RenderingContext, to ensure that its internal representation
+  // of the GPU state is always accureate.
+  let renderer = Renderer::new(gl);
+
+  // Run the program, rendering the results to the screen. We are
+  // not passing any vertex attribute data, so we use a `DummyBuffer`
+  // which renders three vertices: one for each corner of a triangle.
+  renderer.render(&program, &DummyBuffer::new(3)).unwrap();
+}
+```
+
+### Using buffers
+
+```rust
+use web_sys::WebGl2RenderingContext;
+use gl_layers::{Program, Renderer, AttributeBuffer, DrawMode, BufferUsageHint, vertex_attribute};
+
+#[vertex_attribute]
+struct VertexDescription {
+    position: [f32; 2], // field names are mapped to variables in the shader.
+}
+
+impl VertexDescription {
+    pub fn new(x: f32, y: f32) -> Self {
+        VertexDescription { position: [x, y] }
+    }
+}
+
+fn render_triangle(gl: WebGl2RenderingContext) {
+  let program = Program::new(
+      include_str!("../examples/triangle/shaders/shader.frag"),
+      include_str!("../examples/triangle/shaders/shader.vert"),
+      DrawMode::Triangles
+  ).gpu_init(&gl).unwrap();
+
+  let renderer = Renderer::new(gl);
+
+  // Declare a buffer.
+  let mut buffer: AttributeBuffer<VertexDescription> =
+    AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+
+  buffer.set_data(vec![
+    // Triangle #1.
+    VertexDescription::new(-0.3, -0.3),
+    VertexDescription::new(-0.5, -0.3),
+    VertexDescription::new(-0.5, -0.5),
+
+    // Triangle #2.
+    VertexDescription::new(0.3, 0.3),
+    VertexDescription::new(0.5, 0.3),
+    VertexDescription::new(0.5, 0.5),
+  ]);
+
+  renderer.render(&program, &buffer).unwrap();
+}
+```
 

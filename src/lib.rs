@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 pub mod buffer;
 pub mod draw_modes;
 pub mod gpu_init;
@@ -10,6 +12,11 @@ pub mod vertex_attribute;
 
 pub use bytemuck;
 pub use derive_vertex_attribute::vertex_attribute;
+
+pub use draw_modes::DrawMode;
+pub use buffer::{DummyBuffer, AttributeBuffer, BufferUsageHint};
+pub use program::{Program, GlProgram};
+pub use renderer::Renderer;
 
 #[allow(unused)]
 macro_rules! console_log {
