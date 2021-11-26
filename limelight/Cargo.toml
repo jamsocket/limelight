@@ -1,0 +1,27 @@
+[package]
+name = "limelight"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bytemuck = { version = "1.7.2", features = ["derive"] }
+js-sys = "0.3.55"
+wasm-bindgen = "0.2.78"
+web-sys = { version="0.3.55", features = [
+  'console',
+  'Document',
+  'Element',
+  'HtmlCanvasElement',
+  'Performance',
+  'WebGlBuffer',
+  'WebGl2RenderingContext',
+  'WebGlVertexArrayObject',
+  'WebGlUniformLocation',
+  'WebGlProgram',
+  'WebGlShader',
+  'WebGlTexture',
+  'WebGlSync',
+  'Window',
+] }
+limelight-derive = { version="0.1.0", path="./limelight-derive" }
+anyhow = "1.0.48"

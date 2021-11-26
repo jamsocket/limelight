@@ -10,7 +10,7 @@ pub fn vertex_attribute(_attr: proc_macro::TokenStream, item: proc_macro::TokenS
     
     let r = quote! {
         #[repr(C)]
-        #[derive(Clone, Copy, gl_layers::vertex_attribute::VertexAttribute, gl_layers::bytemuck::Pod, gl_layers::bytemuck::Zeroable)]
+        #[derive(Clone, Copy, limelight::VertexAttribute, limelight::bytemuck::Pod, limelight::bytemuck::Zeroable)]
         #item
     };
 
@@ -27,9 +27,9 @@ fn bind(field: &syn::Field) -> TokenStream {
     let kind = &field.ty;
 
     quote! {
-        gl_layers::vertex_attribute::VertexAttributeBinding {
+        limelight::VertexAttributeBinding {
             variable_name: (#name).to_string(),
-            kind: <#kind as gl_layers::types::AsSizedDataType>::as_sized_data_type(),
+            kind: <#kind as limelight::types::AsSizedDataType>::as_sized_data_type(),
         }
     }
 }
@@ -45,8 +45,8 @@ fn impl_vertex_attribute_derive(input: TokenStream) -> TokenStream {
     };
 
     quote! {
-        impl gl_layers::vertex_attribute::VertexAttribute for #name {
-            fn describe() -> Vec<gl_layers::vertex_attribute::VertexAttributeBinding> {
+        impl limelight::VertexAttribute for #name {
+            fn describe() -> Vec<limelight::VertexAttributeBinding> {
                 vec![
                     #(#bindings),*
                 ]

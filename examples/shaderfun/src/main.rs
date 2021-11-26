@@ -1,11 +1,6 @@
 use std::rc::Rc;
 
-use gl_layers::buffer::{DummyBuffer};
-use gl_layers::draw_modes::DrawMode;
-use gl_layers::gpu_init::GpuInit;
-use gl_layers::program::{GlProgram, Program};
-use gl_layers::renderer::Renderer;
-use gl_layers::uniform::Uniform;
+use limelight::{DummyBuffer, DrawMode, GlProgram, Program, Renderer, Uniform};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, MouseEvent, WebGl2RenderingContext};
 use yew::services::render::RenderTask;

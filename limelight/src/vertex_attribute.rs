@@ -1,5 +1,4 @@
 use crate::types::{DataType, SizedDataType};
-pub use derive_vertex_attribute::VertexAttribute;
 
 #[derive(Debug, PartialEq)]
 pub struct VertexAttributeBinding {

@@ -1,10 +1,4 @@
-use gl_layers::buffer::{AttributeBuffer, BufferUsageHint};
-use gl_layers::draw_modes::DrawMode;
-use gl_layers::gpu_init::GpuInit;
-use gl_layers::program::{GlProgram, Program};
-use gl_layers::renderer::Renderer;
-use gl_layers::vertex_attribute;
-use gl_layers::vertex_attribute::VertexAttribute;
+use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer, vertex_attribute};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use yew::services::render::RenderTask;

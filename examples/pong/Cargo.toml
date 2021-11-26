@@ -1,5 +1,5 @@
 [package]
-name = "triangle"
+name = "pong"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,6 +7,6 @@ edition = "2021"
 console_error_panic_hook = "0.1.6"
 wasm-bindgen = "0.2.78"
 web-sys = { version="0.3.55", features=["Window"] }
-gl-layers = { path="../../" }
+limelight = { path="../../limelight" }
 bytemuck = "1.7.2"
 yew = "0.18.0"

@@ -1,6 +1,6 @@
-# {{name}}
+# limelight
 
-{{name}} is a `WebGL2` wrapper with a focus on making high-performance graphics code easier to
+Limelight is a `WebGL2` wrapper with a focus on making high-performance graphics code easier to
 write and maintain.
 
 In particular, it:
@@ -20,18 +20,18 @@ See the [examples](examples) directory for full examples.
 
 ```rust
 use web_sys::WebGl2RenderingContext;
-use gl_layers::{Program, Renderer, DummyBuffer, DrawMode};
+use limelight::{Program, Renderer, DummyBuffer, DrawMode};
 
 fn render_triangle(gl: WebGl2RenderingContext) {
-  // {{name}} doesn't touch the DOM at all. Use your preferred
+  // limelight doesn't touch the DOM at all. Use your preferred
   // framework to create a canvas and create a WebGL2 context
   // from it.
 
   // Create a shader program by passing in GLSL code as strings for
   // the fragment and vertex shaders.
   let program = Program::new(
-      include_str!("../examples/dummy-triangle/shaders/shader.frag"),
-      include_str!("../examples/dummy-triangle/shaders/shader.vert"),
+      include_str!("../../examples/dummy-triangle/shaders/shader.frag"),
+      include_str!("../../examples/dummy-triangle/shaders/shader.vert"),
       DrawMode::Triangles
   ).gpu_init(&gl).unwrap();
 
@@ -51,8 +51,10 @@ fn render_triangle(gl: WebGl2RenderingContext) {
 
 ```rust
 use web_sys::WebGl2RenderingContext;
-use gl_layers::{Program, Renderer, AttributeBuffer, DrawMode, BufferUsageHint, vertex_attribute};
+use limelight::{Program, Renderer, AttributeBuffer, DrawMode, BufferUsageHint, vertex_attribute};
 
+// This attribute macro derives a number of traits, including `VertexAttribute`, which
+// is required for a type to be used in an `AttributeBuffer`.
 #[vertex_attribute]
 struct VertexDescription {
     position: [f32; 2], // field names are mapped to variables in the shader.
@@ -64,10 +66,10 @@ impl VertexDescription {
     }
 }
 
-fn render_triangle(gl: WebGl2RenderingContext) {
+fn render_triangles(gl: WebGl2RenderingContext) {
   let program = Program::new(
-      include_str!("../examples/triangle/shaders/shader.frag"),
-      include_str!("../examples/triangle/shaders/shader.vert"),
+      include_str!("../../examples/triangle/shaders/shader.frag"),
+      include_str!("../../examples/triangle/shaders/shader.vert"),
       DrawMode::Triangles
   ).gpu_init(&gl).unwrap();
 
