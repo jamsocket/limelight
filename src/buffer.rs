@@ -3,7 +3,7 @@ use crate::{
     vertex_attribute::{VertexAttribute, VertexAttributeBinding},
 };
 use anyhow::{anyhow, Result};
-use std::fmt::Debug;
+use std::{cell::RefCell, fmt::Debug};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
 #[derive(Clone, Copy)]
@@ -28,7 +28,7 @@ struct BoundBuffer {
 }
 
 pub struct AttributeBuffer<T: VertexAttribute> {
-    bound_buffer: Option<BoundBuffer>,
+    bound_buffer: RefCell<Option<BoundBuffer>>,
     usage: BufferUsageHint,
     data: Vec<T>,
     dirty: bool,
@@ -36,12 +36,14 @@ pub struct AttributeBuffer<T: VertexAttribute> {
 
 impl<T: VertexAttribute> Debug for AttributeBuffer<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let bound_buffer = self.bound_buffer.borrow();
+
         write!(
             f,
             "AttributeBuffer(bound={}, dirty={}, capacity={}, size={})",
-            !self.bound_buffer.is_none(),
+            !bound_buffer.is_none(),
             self.dirty,
-            self.bound_buffer
+            bound_buffer
                 .as_ref()
                 .map(|d| d.capacity)
                 .unwrap_or_default(),
@@ -53,12 +55,13 @@ impl<T: VertexAttribute> Debug for AttributeBuffer<T> {
 const BIND_POINT: BufferBindPoint = BufferBindPoint::ArrayBuffer;
 
 impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
-    fn gpu_bind(&mut self, gl: &WebGl2RenderingContext) -> Result<()> {
+    fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
+        let buffer_ref = self.bound_buffer.borrow();
         if let Some(BoundBuffer {
             buffer,
             vao,
             capacity,
-        }) = &self.bound_buffer
+        }) = &*buffer_ref
         {
             if !self.dirty {
                 // Bind buffer.
@@ -69,6 +72,7 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
                 gl.delete_buffer(Some(&buffer));
                 gl.delete_vertex_array(Some(&vao));
 
+                drop(buffer_ref); // Free the borrow, because we need a mutable borrow.
                 self.create_and_bind_buffer(gl)?;
             } else {
                 // Reuse buffer.
@@ -82,7 +86,7 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
             }
         } else {
             // Create buffer.
-
+            drop(buffer_ref); // Free the borrow, because we need a mutable borrow.
             self.create_and_bind_buffer(gl)?;
         }
 
@@ -91,7 +95,7 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
 }
 
 impl<T: VertexAttribute> AttributeBuffer<T> {
-    fn create_and_bind_buffer(&mut self, gl: &WebGl2RenderingContext) -> Result<()> {
+    fn create_and_bind_buffer(&self, gl: &WebGl2RenderingContext) -> Result<()> {
         let vao = gl
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Couldn't create vertex array."))?;
@@ -108,18 +112,18 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
 
         bind_vertex_attributes(&T::describe(), &gl);
 
-        self.bound_buffer = Some(BoundBuffer {
+        self.bound_buffer.replace(Some(BoundBuffer {
             vao,
             buffer,
             capacity: self.data.len() as _,
-        });
+        }));
 
         Ok(())
     }
 
     pub fn new(usage: BufferUsageHint) -> Self {
         AttributeBuffer {
-            bound_buffer: None,
+            bound_buffer: RefCell::new(None),
             usage,
             data: Vec::new(),
             dirty: true,

@@ -90,7 +90,7 @@ impl Component for Model {
 
                 if let Some(renderer) = self.renderer.as_ref() {
                     renderer
-                        .render(self.program.as_mut().unwrap(), &mut self.buffer)
+                        .render(self.program.as_ref().unwrap(), &self.buffer)
                         .unwrap();
                     renderer.get_error().unwrap();
                 }

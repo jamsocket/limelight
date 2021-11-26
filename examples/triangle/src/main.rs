@@ -1,8 +1,8 @@
 use gl_layers::buffer::{AttributeBuffer, BufferUsageHint};
 use gl_layers::draw_modes::DrawMode;
-use gl_layers::plan::{Renderer, Stage};
+use gl_layers::gpu_init::GpuInit;
 use gl_layers::program::Program;
-use gl_layers::state::State;
+use gl_layers::renderer::Renderer;
 use gl_layers::vertex_attribute::VertexAttribute;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
@@ -36,15 +36,8 @@ fn get_gl() -> WebGl2RenderingContext {
 fn main() {
     console_error_panic_hook::set_once();
 
-    let buffer = AttributeBuffer::new(BufferUsageHint::StaticDraw);
-    let program = Program::new(
-        include_str!("../shaders/shader.frag"),
-        include_str!("../shaders/shader.vert"),
-    );
-    let renderer = Renderer::new(vec![
-        Stage::new(program, buffer.clone(), State::default(), DrawMode::Triangles),
-    ]);
-
+    let mut buffer = AttributeBuffer::new(BufferUsageHint::StaticDraw);
+    
     buffer.set_data(vec![
         VertexDescription::new(-0.5, -0.5),
         VertexDescription::new(0.5, -0.5),
@@ -52,5 +45,13 @@ fn main() {
     ]);
 
     let gl = get_gl();
-    renderer.render(&gl);
+
+    let program = Program::new(
+        include_str!("../shaders/shader.frag"),
+        include_str!("../shaders/shader.vert"),
+        DrawMode::Triangles
+    ).gpu_init(&gl).unwrap();
+
+    let renderer = Renderer::new(gl);
+    renderer.render(&program, &buffer).unwrap();
 }

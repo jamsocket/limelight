@@ -8,5 +8,5 @@ pub trait GpuInit {
 }
 
 pub trait GpuBind {
-    fn gpu_bind(&mut self, gl: &WebGl2RenderingContext) -> Result<()>;
+    fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
 }

@@ -16,8 +16,8 @@ impl Renderer {
 
     pub fn render<T: VertexAttribute>(
         &self,
-        program: &mut GlProgram<T>,
-        buffer: &mut AttributeBuffer<T>,
+        program: &GlProgram<T>,
+        buffer: &AttributeBuffer<T>,
     ) -> Result<()> {
         buffer.gpu_bind(&self.gl)?;
         program.gpu_bind(&self.gl)?;
