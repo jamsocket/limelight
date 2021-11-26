@@ -95,3 +95,4 @@ fn render_triangles(gl: WebGl2RenderingContext) {
 }
 ```
 
+### TODO: uniforms, structuring animation
