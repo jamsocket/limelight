@@ -24,7 +24,7 @@ full examples.
 
 ### Drawing a triangle
 
-[![A colorful triangle](assets/01-triangle.png)](https://drifting-in-space.github.io/limelight/01-triangles/)
+[![A colorful triangle](assets/01-triangle.png)](https://drifting-in-space.github.io/limelight/01-triangle/)
 
 ```rust
 use web_sys::WebGl2RenderingContext;
