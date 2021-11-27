@@ -15,14 +15,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install Trunk
       run: wget -qO- https://github.com/thedodd/trunk/releases/download/v0.14.0/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
-    - name: Build
-      run: cargo build
     - name: Install wasm32 target
       run: rustup target add wasm32-unknown-unknown
     - name: Install wasm-pack
-      run: cargo install wasm-pack
-    - name: Install wasm-bindgen
-      run: cargo install -f wasm-bindgen-cli
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
     - name: Build demos
       run: |
         mkdir dist
@@ -30,7 +26,7 @@ jobs:
         for DEMO_DIR in $(ls -d */)
         do
           cd "${DEMO_DIR}"
-          trunk build --public-url="/limelight/${DEMO_DIR}/"
+          ~/trunk build --public-url="/limelight/${DEMO_DIR}/"
           mv dist "../../dist/${DEMO_DIR}"
           cd ../
         done
