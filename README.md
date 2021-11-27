@@ -1,4 +1,4 @@
-# limelight
+# Limelight
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/drifting-in-space/limelight?style=social)](https://github.com/drifting-in-space/limelight)
 [![crates.io](https://img.shields.io/crates/v/limelight.svg)](https://crates.io/crates/limelight)
@@ -13,9 +13,8 @@ In particular, it:
   It accomplishes this by using a *shadow GPU* that tracks the GPU's state, diffs it with the
   desired state, and sends only the necessary instructions to WebGL.
 - Provides abstractions for buffers and uniforms that **defer GPU calls until the draw cycle**.
-  (See [WebGL Insights](http://www.webglinsights.com/) section 14.2, *Deferring until the Draw Cycle*.)
-- Provides a **typed interface to uniforms and buffers**, and automatically generates vertex array objects
-  (VAOs) from Rust data types through a derive macro.
+- Provides a **typed interface to uniforms and buffers**, and automatically generates bindings
+  between shader attributes and Rust `struct`s through a derive macro.
 
 ## Getting started
 
@@ -84,7 +83,9 @@ procedural macro (`vertex_attribute`) for mapping from a Rust-side `struct` to a
 vertex attributes.
 
 `buffer.set_data` is *lazy*: it does not result in any GPU activity until the next time the buffer is used
-in a render call. If a buffer is unchanged between render calls, it is not re-written to the GPU.
+in a render call. (See [WebGL Insights](http://www.webglinsights.com/) section 14.2,
+*Deferring until the Draw Cycle*.) If a buffer is unchanged between render calls, it is not re-written
+to the GPU.
 
 ```rust
 use web_sys::WebGl2RenderingContext;
