@@ -1,11 +1,58 @@
-use limelight::{
-    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer,
-};
+use std::rc::Rc;
+use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer, Uniform, vertex_attribute};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
+
+struct Animation {
+    program: GlProgram<VertexDescription>,
+    buffer: AttributeBuffer<VertexDescription>,
+    uniform: Rc<Uniform<[f32; 3]>>,
+}
+
+impl Animation {
+    pub fn new(gl: &WebGl2RenderingContext) -> Self {
+        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+        let uniform = Uniform::new([0., 0., 0.]);
+
+        let program = Program::new(
+            include_str!("../shaders/shader.frag"),
+            include_str!("../shaders/shader.vert"),
+            DrawMode::Triangles,
+        )
+        .with_uniform("u_color", uniform.clone())
+        .gpu_init(&gl)
+        .unwrap();       
+        
+        Animation {
+            buffer,
+            program,
+            uniform
+        }
+    }
+
+    pub fn render(&mut self, time: f64, renderer: &Renderer) {
+        let theta1 = time as f32 / 1000.;
+        let theta2 = theta1 + (std::f32::consts::TAU / 3.);
+        let theta3 = theta2 + (std::f32::consts::TAU / 3.);
+        
+        self.buffer.set_data(vec![
+            VertexDescription::new(theta1.cos(), theta1.sin()),
+            VertexDescription::new(theta2.cos(), theta2.sin()),
+            VertexDescription::new(theta3.cos(), theta3.sin()),
+        ]);
+
+        let r = (time as f32 / 3000.).sin() / 2. + 0.5;
+        let g = (time as f32 / 5000.).sin() / 2. + 0.5;
+        let b = (time as f32 / 7000.).sin() / 2. + 0.5;
+
+        self.uniform.set_value([r, g, b]);
+
+        renderer.render(&self.program, &self.buffer).unwrap();
+    }
+}
 
 #[vertex_attribute]
 struct VertexDescription {
@@ -24,10 +71,9 @@ enum Msg {
 
 struct Model {
     link: ComponentLink<Self>,
-    buffer: AttributeBuffer<VertexDescription>,
     canvas_ref: NodeRef,
     renderer: Option<Renderer>,
-    program: Option<GlProgram<VertexDescription>>,
+    animation: Option<Animation>,
     render_handle: Option<RenderTask>,
 }
 
@@ -36,15 +82,12 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
-
         Self {
             link,
-            buffer,
             canvas_ref: NodeRef::default(),
             render_handle: None,
             renderer: None,
-            program: None,
+            animation: None,
         }
     }
 
@@ -57,16 +100,7 @@ impl Component for Model {
             .dyn_into()
             .unwrap();
 
-        self.program = Some(
-            Program::new(
-                include_str!("../shaders/shader.frag"),
-                include_str!("../shaders/shader.vert"),
-                DrawMode::Triangles,
-            )
-            .gpu_init(&gl)
-            .unwrap(),
-        );
-
+        self.animation = Some(Animation::new(&gl));
         self.renderer = Some(Renderer::new(gl));
 
         self.render_handle = Some(RenderService::request_animation_frame(
@@ -77,24 +111,10 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Render(ts) => {
-                let ts = ts / 1000.;
-                self.buffer.set_data(vec![
-                    VertexDescription::new(0.5 * ts.cos() as f32, 0.5 * ts.sin() as f32),
-                    VertexDescription::new(
-                        0.5 * (ts + 2.0).cos() as f32,
-                        0.5 * (ts + 2.0).sin() as f32,
-                    ),
-                    VertexDescription::new(
-                        0.5 * (ts + 4.0).cos() as f32,
-                        0.5 * (ts + 4.0).sin() as f32,
-                    ),
-                ]);
-
                 if let Some(renderer) = self.renderer.as_ref() {
-                    renderer
-                        .render(self.program.as_ref().unwrap(), &self.buffer)
-                        .unwrap();
-                    renderer.get_error().unwrap();
+                    if let Some(animation) = &mut self.animation {
+                        animation.render(ts, renderer);
+                    }
                 }
 
                 self.render_handle = Some(RenderService::request_animation_frame(

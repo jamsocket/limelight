@@ -3,7 +3,8 @@
 precision highp float;
  
 out vec4 color;
+uniform vec3 u_color;
  
 void main() {
-  color = vec4(0.5, 0.0, 0.3, 1.0);
+  color = vec4(u_color, 1.0);
 }

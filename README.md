@@ -114,18 +114,17 @@ fn render_triangles(gl: WebGl2RenderingContext) {
 
   // Declare a buffer.
   let mut buffer: AttributeBuffer<VertexDescription> =
-    AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+    AttributeBuffer::new(BufferUsageHint::StaticDraw);
 
   buffer.set_data(vec![
-    // Triangle #1.
-    VertexDescription::new(-0.3, -0.3),
-    VertexDescription::new(-0.5, -0.3),
-    VertexDescription::new(-0.5, -0.5),
-
-    // Triangle #2.
-    VertexDescription::new(0.3, 0.3),
-    VertexDescription::new(0.5, 0.3),
-    VertexDescription::new(0.5, 0.5),
+      // Triangle #1.
+      VertexDescription::new(-0.1, -0.1),
+      VertexDescription::new(-0.5, -0.1),
+      VertexDescription::new(-0.5, -0.5),
+      // Triangle #2.
+      VertexDescription::new(0.1, 0.1),
+      VertexDescription::new(0.5, 0.1),
+      VertexDescription::new(0.5, 0.5),
   ]);
 
   renderer.render(&program, &buffer).unwrap();
@@ -151,7 +150,7 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
     // This will correspond to "uniform float u_rotate" in the vertex shader.
     let rotate_uniform = Uniform::new(std::f32::consts::PI / 3.4);
     
-    // This will correspond to "uniform vec2 u_rotate" in the vertex shader.
+    // This will correspond to "uniform vec2 u_scale" in the vertex shader.
     let scale_uniform = Uniform::new([0.5, 0.8]);
 
     // This will correspond to "uniform vec3 u_color" in the fragment shader.
@@ -211,4 +210,81 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
 }
 ```
 
-### TODO: structuring animation
+### Animation
+
+([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/04-animate),
+[demo](https://drifting-in-space.github.io/limelight/04-animate/))
+
+The previous examples have rendered static images, so we haven't had a need to separate code
+that sets up the initial data structures from code that updates GPU-side data and triggers an
+animation. In this example, we separate the code into a `new()` method that is called once,
+and a `render` method that is called on every frame.
+
+limelight is not a framework, and in order to integrate with other frameworks, it is not opinionated
+on how you structure your code. This example shows one way you might choose to structure code for
+a simple animation.
+
+```rust
+use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer, Uniform, vertex_attribute};
+use web_sys::WebGl2RenderingContext;
+use std::rc::Rc;
+
+struct Animation {
+    program: GlProgram<VertexDescription>,
+    buffer: AttributeBuffer<VertexDescription>,
+    uniform: Rc<Uniform<[f32; 3]>>,
+}
+
+impl Animation {
+    pub fn new(gl: &WebGl2RenderingContext) -> Self {
+        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+        let uniform = Uniform::new([0., 0., 0.]);
+
+        let program = Program::new(
+            include_str!("../../examples/04-animate/shaders/shader.frag"),
+            include_str!("../../examples/04-animate/shaders/shader.vert"),
+            DrawMode::Triangles,
+        )
+        .with_uniform("u_color", uniform.clone())
+        .gpu_init(&gl)
+        .unwrap();       
+        
+        Animation {
+            buffer,
+            program,
+            uniform
+        }
+    }
+
+    pub fn render(&mut self, time: f64, renderer: &Renderer) {
+        let theta1 = time as f32 / 1000.;
+        let theta2 = theta1 + (std::f32::consts::TAU / 3.);
+        let theta3 = theta2 + (std::f32::consts::TAU / 3.);
+        
+        self.buffer.set_data(vec![
+            VertexDescription::new(theta1.cos(), theta1.sin()),
+            VertexDescription::new(theta2.cos(), theta2.sin()),
+            VertexDescription::new(theta3.cos(), theta3.sin()),
+        ]);
+
+        let r = (time as f32 / 3000.).sin() / 2. + 0.5;
+        let g = (time as f32 / 5000.).sin() / 2. + 0.5;
+        let b = (time as f32 / 7000.).sin() / 2. + 0.5;
+
+        self.uniform.set_value([r, g, b]);
+
+        renderer.render(&self.program, &self.buffer).unwrap();
+    }
+}
+
+#[vertex_attribute]
+struct VertexDescription {
+    position: [f32; 2],
+}
+
+impl VertexDescription {
+    pub fn new(x: f32, y: f32) -> Self {
+        VertexDescription { position: [x, y] }
+    }
+}
+```

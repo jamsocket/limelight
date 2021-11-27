@@ -29,16 +29,16 @@ fn render_triangles(gl: WebGl2RenderingContext) {
     let renderer = Renderer::new(gl);
 
     let mut buffer: AttributeBuffer<VertexDescription> =
-        AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+        AttributeBuffer::new(BufferUsageHint::StaticDraw);
 
     buffer.set_data(vec![
         // Triangle #1.
-        VertexDescription::new(-0.3, -0.3),
-        VertexDescription::new(-0.5, -0.3),
+        VertexDescription::new(-0.1, -0.1),
+        VertexDescription::new(-0.5, -0.1),
         VertexDescription::new(-0.5, -0.5),
         // Triangle #2.
-        VertexDescription::new(0.3, 0.3),
-        VertexDescription::new(0.5, 0.3),
+        VertexDescription::new(0.1, 0.1),
+        VertexDescription::new(0.5, 0.1),
         VertexDescription::new(0.5, 0.5),
     ]);
 
