@@ -5,7 +5,7 @@ use limelight_transform::TransformUniform;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, MouseEvent, WebGl2RenderingContext, WheelEvent};
 use yew::services::render::RenderTask;
-use yew::services::{ConsoleService, RenderService};
+use yew::services::RenderService;
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 
 const HEIGHT: i32 = 900;
@@ -160,8 +160,6 @@ impl Component for Model {
 
                 let pin_x = (2 * e.offset_x()) as f32 / WIDTH as f32 - 1.;
                 let pin_y = -((2 * e.offset_y()) as f32 / HEIGHT as f32 - 1.);
-
-                // ConsoleService::log(&format!("x: {}, y: {}", pin_x, pin_y));
 
                 if let Some(animation) = &mut self.animation {
                     animation.scale(scale_factor, (pin_x, pin_y));
