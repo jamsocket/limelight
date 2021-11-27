@@ -30,7 +30,7 @@ uniforms, and buffers.
 ([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/01-triangle),
 [demo](https://drifting-in-space.github.io/limelight/01-triangles/))
 
-[![A colorful triangle](https://github.com/drifting-in-space/limelight/raw/main/assets/01-triangle.png)](https://drifting-in-space.github.io/limelight/01-triangles/)
+[![A colorful triangle](https://github.com/drifting-in-space/limelight/raw/main/assets/01-triangle.png)](https://drifting-in-space.github.io/limelight/01-triangle/)
 
 This example demonstrates the three main steps to produce an image with limelight:
 1. Create a `Program` object. A `Program` in limelight contains the vertex and fragment shader pair
@@ -212,3 +212,6 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
 ```
 
 ### TODO: structuring animation
+=======
+### TODO: uniforms, structuring animation
+>>>>>>> 217f7b32cdd575344da31d62ac0187d04ca2a07c
