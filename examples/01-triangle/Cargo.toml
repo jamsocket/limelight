@@ -1,5 +1,5 @@
 [package]
-name = "triangle"
+name = "limelight-example-triangle"
 version = "0.1.0"
 edition = "2021"
 

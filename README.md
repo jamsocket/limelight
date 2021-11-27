@@ -19,9 +19,12 @@ In particular, it:
 
 ## Getting started
 
-See the [examples](examples) directory for full examples.
+See the [examples](https://github.com/drifting-in-space/limelight/tree/main/examples) directory for
+full examples.
 
 ### Drawing a triangle
+
+[![A colorful triangle](assets/01-triangle.png)](https://drifting-in-space.github.io/limelight/01-triangles/)
 
 ```rust
 use web_sys::WebGl2RenderingContext;
@@ -35,8 +38,8 @@ fn render_triangle(gl: WebGl2RenderingContext) {
   // Create a shader program by passing in GLSL code as strings for
   // the fragment and vertex shaders.
   let program = Program::new(
-      include_str!("../../examples/dummy-triangle/shaders/shader.frag"),
-      include_str!("../../examples/dummy-triangle/shaders/shader.vert"),
+      include_str!("../../examples/01-triangle/shaders/shader.frag"),
+      include_str!("../../examples/01-triangle/shaders/shader.vert"),
       DrawMode::Triangles
   ).gpu_init(&gl).unwrap();
 
@@ -53,6 +56,8 @@ fn render_triangle(gl: WebGl2RenderingContext) {
 ```
 
 ### Using buffers
+
+[![Two small triangles](assets/02-buffer.png)](https://drifting-in-space.github.io/limelight/02-buffer/)
 
 ```rust
 use web_sys::WebGl2RenderingContext;

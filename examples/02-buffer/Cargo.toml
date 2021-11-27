@@ -1,5 +1,5 @@
 [package]
-name = "dummy-triangle"
+name = "limelight-example-buffer"
 version = "0.1.0"
 edition = "2021"
 
