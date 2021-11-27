@@ -1,6 +1,8 @@
 use std::ops::Deref;
 
-use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer, vertex_attribute};
+use limelight::{
+    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer,
+};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, KeyboardEvent, WebGl2RenderingContext};
 use yew::services::keyboard::KeyListenerHandle;
@@ -51,7 +53,8 @@ impl GameState {
             self.ball_position[1] + self.ball_direction[1] * BALL_SPEED,
         ];
 
-        if ((LEFT_BOUND + PADDLE_BUFFER - BALL_SPEED)..(LEFT_BOUND + PADDLE_BUFFER + BALL_SPEED))
+        if ((LEFT_BOUND + PADDLE_BUFFER - BALL_SPEED + PADDLE_WIDTH / 2.)
+            ..(LEFT_BOUND + PADDLE_BUFFER + BALL_SPEED + PADDLE_WIDTH / 2.))
             .contains(&self.ball_position[0])
             && ((self.paddle_position - PADDLE_HEIGHT / 2.)
                 ..(self.paddle_position + PADDLE_HEIGHT / 2.))
@@ -60,7 +63,8 @@ impl GameState {
             self.ball_direction[0] = -self.ball_direction[0];
         }
 
-        if ((RIGHT_BOUND - PADDLE_BUFFER - BALL_SPEED)..(RIGHT_BOUND - PADDLE_BUFFER + BALL_SPEED))
+        if ((RIGHT_BOUND - PADDLE_BUFFER - BALL_SPEED - PADDLE_WIDTH / 2.)
+            ..(RIGHT_BOUND - PADDLE_BUFFER + BALL_SPEED - PADDLE_WIDTH / 2.))
             .contains(&self.ball_position[0])
             && ((-self.paddle_position - PADDLE_HEIGHT / 2.)
                 ..(-self.paddle_position + PADDLE_HEIGHT / 2.))
