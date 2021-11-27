@@ -26,7 +26,7 @@ jobs:
         for DEMO_DIR in $(ls -d */)
         do
           cd "${DEMO_DIR}"
-          ../../trunk build --public-url="/limelight/${DEMO_DIR}/"
+          ../../trunk build --release --public-url="/limelight/${DEMO_DIR}/"
           mv dist "../../dist/${DEMO_DIR}"
           cd ../
         done

@@ -1,4 +1,6 @@
-use limelight::{vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, Program, Renderer};
+use limelight::{
+    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, Program, Renderer,
+};
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
@@ -26,7 +28,6 @@ fn render_triangles(gl: WebGl2RenderingContext) {
 
     let renderer = Renderer::new(gl);
 
-    // Declare a buffer.
     let mut buffer: AttributeBuffer<VertexDescription> =
         AttributeBuffer::new(BufferUsageHint::DynamicDraw);
 
