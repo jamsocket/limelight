@@ -212,6 +212,3 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
 ```
 
 ### TODO: structuring animation
-=======
-### TODO: uniforms, structuring animation
->>>>>>> 217f7b32cdd575344da31d62ac0187d04ca2a07c
