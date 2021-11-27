@@ -1,0 +1,7 @@
+[package]
+name = "limelight-transform"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+limelight = {path="../limelight"}

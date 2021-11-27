@@ -5,7 +5,7 @@
 [![docs.rs](https://img.shields.io/badge/docs-release-brightgreen)](https://docs.rs/limelight/)
 [![Rust](https://github.com/drifting-in-space/limelight/actions/workflows/rust.yml/badge.svg)](https://github.com/drifting-in-space/limelight/actions/workflows/rust.yml)
 
-Limelight is a `WebGL2` wrapper with a focus on making high-performance graphics code easier to
+Limelight is a `WebGL2` wrapper with a focus on making high-performance WebAssembly graphics code easier to
 write and maintain.
 
 In particular, it:
