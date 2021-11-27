@@ -175,42 +175,6 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
 }
 ```
 
-`Uniform::new` returns an `Rc<Uniform>`, allowing you to attach it to a program (or multiple programs)
-while still retaining a handle through which you can set it. To do so, use `.clone()` in the call to
-`with_uniform`:
-
-```rust
-use limelight::{DrawMode, DummyBuffer, Program, Renderer, Uniform};
-use web_sys::WebGl2RenderingContext;
-
-fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
-    // We construct with placeholder values.
-    let rotate_uniform = Uniform::new(0.);
-    let scale_uniform = Uniform::new([0., 0.]);
-    let color_uniform = Uniform::new([0., 0., 0.]);
-
-    let program = Program::new(
-      include_str!("../../examples/03-uniform/shaders/shader.frag"),
-      include_str!("../../examples/03-uniform/shaders/shader.vert"),
-        DrawMode::Triangles,
-    )
-    // Note the addition of `.clone()` to each uniform.
-    .with_uniform("u_rotate", rotate_uniform.clone())
-    .with_uniform("u_scale", scale_uniform.clone())
-    .with_uniform("u_color", color_uniform.clone())
-    .gpu_init(&gl)
-    .unwrap();
-
-    // Now we still have handles to the uniforms that we can use to change their values.
-    rotate_uniform.set_value(std::f32::consts::PI / 3.4);
-    scale_uniform.set_value([0.5, 0.8]);
-    color_uniform.set_value([0.9, 0.2, 0.3]);
-
-    let renderer = Renderer::new(gl);
-    renderer.render(&program, &DummyBuffer::new(3)).unwrap();
-}
-```
-
 ### Animation
 
 ([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/04-animate),
@@ -246,6 +210,9 @@ impl Animation {
             include_str!("../../examples/04-animate/shaders/shader.vert"),
             DrawMode::Triangles,
         )
+        // Note that we clone uniform, so that we can retain a handle to it.
+        // Uniform::new returns an Rc<Uniform<T>>, so cloning it returns a
+        // reference to the same object.
         .with_uniform("u_color", uniform.clone())
         .gpu_init(&gl)
         .unwrap();       
