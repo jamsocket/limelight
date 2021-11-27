@@ -1,6 +1,6 @@
 use crate::{
     draw_modes::DrawMode,
-    gpu_init::{GpuBind},
+    gpu_init::GpuBind,
     uniform::{BindableUniform, Uniform, UniformValue},
     vertex_attribute::VertexAttribute,
 };
@@ -75,11 +75,7 @@ impl<T: VertexAttribute> Program<T> {
         })
     }
 
-    pub fn with_uniform<U: UniformValue>(
-        mut self,
-        name: &str,
-        uniform: Rc<Uniform<U>>,
-    ) -> Self {
+    pub fn with_uniform<U: UniformValue>(mut self, name: &str, uniform: Rc<Uniform<U>>) -> Self {
         match self.uniforms.entry(name.to_string()) {
             Entry::Occupied(_) => panic!("Tried to set uniform {} more than once.", name),
             Entry::Vacant(e) => e.insert(Box::new(uniform)),

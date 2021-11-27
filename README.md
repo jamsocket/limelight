@@ -78,8 +78,8 @@ impl VertexDescription {
 
 fn render_triangles(gl: WebGl2RenderingContext) {
   let program = Program::new(
-      include_str!("../../examples/triangle/shaders/shader.frag"),
-      include_str!("../../examples/triangle/shaders/shader.vert"),
+      include_str!("../../examples/02-buffer/shaders/shader.frag"),
+      include_str!("../../examples/02-buffer/shaders/shader.vert"),
       DrawMode::Triangles
   ).gpu_init(&gl).unwrap();
 

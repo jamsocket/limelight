@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use limelight::{DummyBuffer, DrawMode, GlProgram, Program, Renderer, Uniform};
+use limelight::{DrawMode, DummyBuffer, GlProgram, Program, Renderer, Uniform};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, MouseEvent, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
@@ -81,7 +81,7 @@ impl Component for Model {
                 self.render_handle = Some(RenderService::request_animation_frame(
                     self.link.callback(Msg::Render),
                 ));
-            },
+            }
             Msg::MouseMove(e) => {
                 let x = e.offset_x() as f32 / 450. - 1.;
                 let y = -e.offset_y() as f32 / 450. + 1.;

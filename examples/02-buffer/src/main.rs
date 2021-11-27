@@ -1,4 +1,4 @@
-use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, Program, Renderer, vertex_attribute};
+use limelight::{vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, Program, Renderer};
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
@@ -16,31 +16,32 @@ impl VertexDescription {
 }
 
 fn render_triangles(gl: WebGl2RenderingContext) {
-  let program = Program::new(
-      include_str!("../shaders/shader.frag"),
-      include_str!("../shaders/shader.vert"),
-      DrawMode::Triangles
-  ).gpu_init(&gl).unwrap();
+    let program = Program::new(
+        include_str!("../shaders/shader.frag"),
+        include_str!("../shaders/shader.vert"),
+        DrawMode::Triangles,
+    )
+    .gpu_init(&gl)
+    .unwrap();
 
-  let renderer = Renderer::new(gl);
+    let renderer = Renderer::new(gl);
 
-  // Declare a buffer.
-  let mut buffer: AttributeBuffer<VertexDescription> =
-    AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+    // Declare a buffer.
+    let mut buffer: AttributeBuffer<VertexDescription> =
+        AttributeBuffer::new(BufferUsageHint::DynamicDraw);
 
-  buffer.set_data(vec![
-    // Triangle #1.
-    VertexDescription::new(-0.3, -0.3),
-    VertexDescription::new(-0.5, -0.3),
-    VertexDescription::new(-0.5, -0.5),
+    buffer.set_data(vec![
+        // Triangle #1.
+        VertexDescription::new(-0.3, -0.3),
+        VertexDescription::new(-0.5, -0.3),
+        VertexDescription::new(-0.5, -0.5),
+        // Triangle #2.
+        VertexDescription::new(0.3, 0.3),
+        VertexDescription::new(0.5, 0.3),
+        VertexDescription::new(0.5, 0.5),
+    ]);
 
-    // Triangle #2.
-    VertexDescription::new(0.3, 0.3),
-    VertexDescription::new(0.5, 0.3),
-    VertexDescription::new(0.5, 0.5),
-  ]);
-
-  renderer.render(&program, &buffer).unwrap();
+    renderer.render(&program, &buffer).unwrap();
 }
 
 fn get_gl() -> WebGl2RenderingContext {

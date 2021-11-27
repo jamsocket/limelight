@@ -1,4 +1,6 @@
-use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer, vertex_attribute};
+use limelight::{
+    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer,
+};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
@@ -78,8 +80,14 @@ impl Component for Model {
                 let ts = ts / 1000.;
                 self.buffer.set_data(vec![
                     VertexDescription::new(0.5 * ts.cos() as f32, 0.5 * ts.sin() as f32),
-                    VertexDescription::new(0.5 * (ts + 2.0).cos() as f32, 0.5 * (ts + 2.0).sin() as f32),
-                    VertexDescription::new(0.5 * (ts + 4.0).cos() as f32, 0.5 * (ts + 4.0).sin() as f32),                    
+                    VertexDescription::new(
+                        0.5 * (ts + 2.0).cos() as f32,
+                        0.5 * (ts + 2.0).sin() as f32,
+                    ),
+                    VertexDescription::new(
+                        0.5 * (ts + 4.0).cos() as f32,
+                        0.5 * (ts + 4.0).sin() as f32,
+                    ),
                 ]);
 
                 if let Some(renderer) = self.renderer.as_ref() {

@@ -3,7 +3,10 @@ use crate::{
     vertex_attribute::{VertexAttribute, VertexAttributeBinding},
 };
 use anyhow::{anyhow, Result};
-use std::{cell::{RefCell, RefMut}, fmt::Debug};
+use std::{
+    cell::{RefCell, RefMut},
+    fmt::Debug,
+};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
 pub trait BufferLike<T: VertexAttribute>: GpuBind {
@@ -11,7 +14,7 @@ pub trait BufferLike<T: VertexAttribute>: GpuBind {
 }
 
 /// Enum of WebGL Bind Points.
-/// 
+///
 /// Each bind point is a global bind point in WebGL that can have an
 /// array bound to it.
 #[derive(Clone, Copy)]
@@ -22,7 +25,7 @@ pub enum BufferBindPoint {
 }
 
 /// Usage hint to tell WebGL how a buffer will be used.
-/// 
+///
 /// These hints are non-binding; you can read/write from a
 /// buffer as much as you like regardless of the hint. However,
 /// a driver may use the hint to optimize memory layout.
@@ -81,7 +84,7 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
             vao,
             capacity,
             dirty,
-        }) = &mut*buffer_ref
+        }) = &mut *buffer_ref
         {
             if !*dirty {
                 // Bind buffer.
@@ -122,7 +125,11 @@ impl<T: VertexAttribute> BufferLike<T> for AttributeBuffer<T> {
 }
 
 impl<T: VertexAttribute> AttributeBuffer<T> {
-    fn create_and_bind_buffer(&self, gl: &WebGl2RenderingContext, mut buffer_ref: RefMut<Option<BoundBuffer>>) -> Result<()> {
+    fn create_and_bind_buffer(
+        &self,
+        gl: &WebGl2RenderingContext,
+        mut buffer_ref: RefMut<Option<BoundBuffer>>,
+    ) -> Result<()> {
         let vao = gl
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Couldn't create vertex array."))?;
@@ -159,7 +166,7 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
 
     pub fn set_data(&mut self, data: Vec<T>) {
         self.data = data;
-        if let Some(buffer) = &mut*self.bound_buffer.borrow_mut() {
+        if let Some(buffer) = &mut *self.bound_buffer.borrow_mut() {
             buffer.dirty = true;
         }
     }
@@ -189,7 +196,7 @@ fn bind_vertex_attributes(bindings: &[VertexAttributeBinding], gl: &WebGl2Render
 }
 
 pub struct DummyBuffer {
-    size: usize
+    size: usize,
 }
 
 impl DummyBuffer {
@@ -211,7 +218,8 @@ impl GpuBind for DummyBuffer {
     }
 }
 
-
 impl VertexAttribute for () {
-    fn describe() -> Vec<VertexAttributeBinding> { vec![] }
+    fn describe() -> Vec<VertexAttributeBinding> {
+        vec![]
+    }
 }

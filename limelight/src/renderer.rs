@@ -1,4 +1,6 @@
-use crate::{buffer::BufferLike, gpu_init::GpuBind, program::GlProgram, vertex_attribute::VertexAttribute};
+use crate::{
+    buffer::BufferLike, gpu_init::GpuBind, program::GlProgram, vertex_attribute::VertexAttribute,
+};
 use anyhow::{anyhow, Result};
 use web_sys::WebGl2RenderingContext;
 

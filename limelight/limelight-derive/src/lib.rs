@@ -5,9 +5,12 @@ use quote::quote;
 use syn::ItemStruct;
 
 #[proc_macro_attribute]
-pub fn vertex_attribute(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn vertex_attribute(
+    _attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let item: TokenStream = item.into();
-    
+
     let r = quote! {
         #[repr(C)]
         #[derive(Clone, Copy, limelight::VertexAttribute, limelight::bytemuck::Pod, limelight::bytemuck::Zeroable)]
