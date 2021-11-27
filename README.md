@@ -118,11 +118,11 @@ fn render_triangles(gl: WebGl2RenderingContext) {
     AttributeBuffer::new(BufferUsageHint::StaticDraw);
 
   buffer.set_data(vec![
-      // Triangle #1.
+      // Lower-left triangle.
       VertexDescription::new(-0.1, -0.1),
       VertexDescription::new(-0.5, -0.1),
       VertexDescription::new(-0.5, -0.5),
-      // Triangle #2.
+      // Upper-right triangle.
       VertexDescription::new(0.1, 0.1),
       VertexDescription::new(0.5, 0.1),
       VertexDescription::new(0.5, 0.5),
