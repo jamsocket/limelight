@@ -1,0 +1,8 @@
+[package]
+name = "limelight-primitives"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+limelight = {path="../limelight"}
+bytemuck = "1.7.2"

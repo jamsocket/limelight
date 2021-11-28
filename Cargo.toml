@@ -3,5 +3,6 @@
 members = [
   "limelight",
   "transform",
+  "primitives",
   "examples/*",
 ]
