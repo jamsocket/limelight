@@ -27,7 +27,7 @@ uniforms, and buffers.
 ### Drawing a triangle
 
 ([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/01-triangle),
-[demo](https://drifting-in-space.github.io/limelight/01-triangles/))
+[demo](https://drifting-in-space.github.io/limelight/01-triangle/))
 
 [![A colorful triangle](https://github.com/drifting-in-space/limelight/raw/main/assets/01-triangle.png)](https://drifting-in-space.github.io/limelight/01-triangle/)
 
