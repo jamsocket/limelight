@@ -13,11 +13,13 @@ pub mod vertex_attribute;
 pub use bytemuck;
 pub use limelight_derive::{vertex_attribute, VertexAttribute};
 
-pub use buffer::{AttributeBuffer, BufferUsageHint, DummyBuffer};
+pub use buffer::attribute_buffer::AttributeBuffer;
+pub use buffer::dummy::DummyBuffer;
+pub use buffer::types::BufferUsageHint;
 pub use draw_modes::DrawMode;
 pub use program::{GlProgram, Program};
 pub use renderer::Renderer;
-pub use uniform::Uniform;
+pub use uniform::{Uniform, UniformHandle};
 pub use vertex_attribute::{VertexAttribute, VertexAttributeBinding};
 
 #[allow(unused)]

@@ -1,15 +1,15 @@
 use crate::{
     draw_modes::DrawMode,
     gpu_init::GpuBind,
-    uniform::{BindableUniform, Uniform, UniformValue},
+    uniform::{BindableUniform, UniformValue},
     vertex_attribute::VertexAttribute,
+    UniformHandle,
 };
 use anyhow::{anyhow, Result};
 use std::{
     collections::{hash_map::Entry, HashMap},
     fmt::Debug,
     marker::PhantomData,
-    rc::Rc,
 };
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlUniformLocation};
 
@@ -75,7 +75,7 @@ impl<T: VertexAttribute> Program<T> {
         })
     }
 
-    pub fn with_uniform<U: UniformValue>(mut self, name: &str, uniform: Rc<Uniform<U>>) -> Self {
+    pub fn with_uniform<U: UniformValue>(mut self, name: &str, uniform: UniformHandle<U>) -> Self {
         match self.uniforms.entry(name.to_string()) {
             Entry::Occupied(_) => panic!("Tried to set uniform {} more than once.", name),
             Entry::Vacant(e) => e.insert(Box::new(uniform)),

@@ -1,15 +1,17 @@
+use slice_of_array::SliceFlatExt;
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
-use slice_of_array::SliceFlatExt;
 
 #[derive(Debug)]
 pub struct Uniform<T: UniformValue> {
     value: RefCell<T>,
 }
 
+pub type UniformHandle<T> = Rc<Uniform<T>>;
+
 impl<T: UniformValue> Uniform<T> {
-    pub fn new(value: T) -> Rc<Self> {
-        Rc::new(Self {
+    pub fn new(value: T) -> UniformHandle<T> {
+        Rc::new(Uniform {
             value: RefCell::new(value),
         })
     }

@@ -1,5 +1,8 @@
+use limelight::{
+    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer,
+    Uniform,
+};
 use std::rc::Rc;
-use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer, Uniform, vertex_attribute};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
@@ -24,12 +27,12 @@ impl Animation {
         )
         .with_uniform("u_color", uniform.clone())
         .gpu_init(&gl)
-        .unwrap();       
-        
+        .unwrap();
+
         Animation {
             buffer,
             program,
-            uniform
+            uniform,
         }
     }
 
@@ -37,7 +40,7 @@ impl Animation {
         let theta1 = time as f32 / 1000.;
         let theta2 = theta1 + (std::f32::consts::TAU / 3.);
         let theta3 = theta2 + (std::f32::consts::TAU / 3.);
-        
+
         self.buffer.set_data(vec![
             VertexDescription::new(theta1.cos(), theta1.sin()),
             VertexDescription::new(theta2.cos(), theta2.sin()),

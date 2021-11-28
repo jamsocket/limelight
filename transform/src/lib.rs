@@ -1,11 +1,9 @@
-use std::rc::Rc;
-
-use limelight::Uniform;
+use limelight::{Uniform, UniformHandle};
 
 pub struct TransformUniform {
     scale: (f32, f32),
     center: (f32, f32),
-    uniform: Rc<Uniform<[[f32; 4]; 4]>>,
+    uniform: UniformHandle<[[f32; 4]; 4]>,
 }
 
 fn scale_center_to_matrix(
@@ -32,7 +30,7 @@ impl TransformUniform {
         }
     }
 
-    pub fn uniform(&self) -> Rc<Uniform<[[f32; 4]; 4]>> {
+    pub fn uniform(&self) -> UniformHandle<[[f32; 4]; 4]> {
         self.uniform.clone()
     }
 

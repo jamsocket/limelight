@@ -1,4 +1,4 @@
-use limelight::{GlProgram, vertex_attribute};
+use limelight::{vertex_attribute, GlProgram};
 
 // Color information can be:
 // - Global color (from uniform)
@@ -37,7 +37,7 @@ pub const AXIS_VERTICAL: u32 = 0x1;
 pub struct Hairline {
     location: f32,
     color: Color,
-    axis: u32,    
+    axis: u32,
 }
 
 pub fn line_program() -> GlProgram<Line> {
