@@ -1,5 +1,5 @@
 use self::attribute_buffer::BufferHandle;
-use crate::{gpu_init::GpuBind, VertexAttribute};
+use crate::{GpuBind, VertexAttribute};
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 

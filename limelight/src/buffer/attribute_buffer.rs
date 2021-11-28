@@ -2,7 +2,7 @@ use super::{
     types::{BufferBindPoint, BufferUsageHint},
     BufferLike,
 };
-use crate::{gpu_init::GpuBind, VertexAttribute, VertexAttributeBinding};
+use crate::{GpuBind, VertexAttribute, VertexAttributeBinding};
 use anyhow::{anyhow, Result};
 use std::{
     cell::{RefCell, RefMut},

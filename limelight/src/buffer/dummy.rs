@@ -1,7 +1,7 @@
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{gpu_init::GpuBind, VertexAttribute, VertexAttributeBinding};
+use crate::{GpuBind, VertexAttribute, VertexAttributeBinding};
 
 use super::BufferLike;
 

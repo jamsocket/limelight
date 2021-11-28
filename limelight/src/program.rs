@@ -1,9 +1,8 @@
 use crate::{
     draw_modes::DrawMode,
-    gpu_init::GpuBind,
     uniform::{BindableUniform, UniformValue},
     vertex_attribute::VertexAttribute,
-    UniformHandle,
+    GpuBind, UniformHandle,
 };
 use anyhow::{anyhow, Result};
 use std::{
