@@ -1,35 +1,30 @@
-use crate::{buffer::BufferLike, program::GlProgram, vertex_attribute::VertexAttribute, GpuBind};
+use crate::{ program::ProgramLike, shadow_gpu::{GpuState, ShadowGpu}, vertex_attribute::VertexAttribute};
 use anyhow::{anyhow, Result};
 use web_sys::WebGl2RenderingContext;
 
 pub struct Renderer {
-    gl: WebGl2RenderingContext,
+    gpu: ShadowGpu,
 }
 
 impl Renderer {
     pub fn new(gl: WebGl2RenderingContext) -> Self {
-        Renderer { gl }
+        let gpu = ShadowGpu::new(gl);
+        Renderer { gpu }
     }
 
     pub fn render<T: VertexAttribute>(
-        &self,
-        program: &GlProgram<T>,
-        buffer: &impl BufferLike<T>,
+        &mut self,
+        program: &mut impl ProgramLike<T>,
+        //buffer: &impl BufferLike<T>,
     ) -> Result<()> {
-        buffer.gpu_bind(&self.gl)?;
-        program.gpu_bind(&self.gl)?;
-        self.gl
-            .draw_arrays(program.draw_mode() as _, 0, buffer.len() as _);
-
+        
+        // let state: GpuState = GpuState {
+        //     program: Some(program.get_program(&mut self.gpu)?),
+        //     buffer: Some(buffer.get_vao(&mut self.gpu)?),
+        //     uniforms: todo!(),
+        // };
+        
         Ok(())
     }
 
-    pub fn get_error(&self) -> Result<()> {
-        let error = self.gl.get_error();
-        if error != WebGl2RenderingContext::NO_ERROR {
-            Err(anyhow!("WebGL Error: {:?}", error))
-        } else {
-            Ok(())
-        }
-    }
 }

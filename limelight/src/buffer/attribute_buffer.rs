@@ -2,7 +2,7 @@ use super::{
     types::{BufferBindPoint, BufferUsageHint},
     BufferLike,
 };
-use crate::{GpuBind, VertexAttribute, VertexAttributeBinding};
+use crate::{VertexAttribute, VertexAttributeBinding, shadow_gpu::{BufferHandle, ShadowGpu}};
 use anyhow::{anyhow, Result};
 use std::{
     cell::{RefCell, RefMut},
@@ -13,7 +13,7 @@ use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
 struct BoundBuffer {
     buffer: WebGlBuffer,
-    vao: WebGlVertexArrayObject,
+    vao: Rc<WebGlVertexArrayObject>,
     capacity: u32,
     dirty: bool,
 }
@@ -45,10 +45,14 @@ impl<T: VertexAttribute> Debug for AttributeBuffer<T> {
 
 const BIND_POINT: BufferBindPoint = BufferBindPoint::ArrayBuffer;
 
-impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
-    fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
+impl<T: VertexAttribute> BufferLike<T> for AttributeBuffer<T> {
+    fn len(&self) -> usize {
+        self.data.borrow().len()
+    }
+
+    fn get_vao(&self, gpu: &ShadowGpu) -> Result<BufferHandle> {
         let mut buffer_ref = self.bound_buffer.borrow_mut();
-        if let Some(BoundBuffer {
+        let vao = if let Some(BoundBuffer {
             buffer,
             vao,
             capacity,
@@ -58,6 +62,8 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
             if !*dirty {
                 // Bind buffer.
                 gl.bind_vertex_array(Some(vao));
+
+                vao.clone()
             } else if self.data.borrow().len() > *capacity as _ {
                 // Resize buffer.
 
@@ -65,7 +71,7 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
                 gl.delete_vertex_array(Some(&vao));
 
                 *dirty = false;
-                self.create_and_bind_buffer(gl, buffer_ref)?;
+                self.create_and_bind_buffer(gl, buffer_ref)?
             } else {
                 // Reuse buffer.
                 gl.bind_vertex_array(Some(&vao));
@@ -77,30 +83,24 @@ impl<T: VertexAttribute> GpuBind for AttributeBuffer<T> {
                 );
 
                 *dirty = false;
+
+                vao.clone()
             }
         } else {
             // Create buffer.
-            self.create_and_bind_buffer(gl, buffer_ref)?;
-        }
+            self.create_and_bind_buffer(gl, buffer_ref)?
+        };
 
-        Ok(())
+        Ok(Some(vao))
     }
 }
-
-impl<T: VertexAttribute> BufferLike<T> for AttributeBuffer<T> {
-    fn len(&self) -> usize {
-        self.data.borrow().len()
-    }
-}
-
-pub type BufferHandle<T> = Rc<AttributeBuffer<T>>;
 
 impl<T: VertexAttribute> AttributeBuffer<T> {
     fn create_and_bind_buffer(
         &self,
         gl: &WebGl2RenderingContext,
         mut buffer_ref: RefMut<Option<BoundBuffer>>,
-    ) -> Result<()> {
+    ) -> Result<Rc<WebGlVertexArrayObject>> {
         let vao = gl
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Couldn't create vertex array."))?;
@@ -117,14 +117,15 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
 
         bind_vertex_attributes(&T::describe(), &gl);
 
+        let vao = Rc::new(vao);
         *buffer_ref = Some(BoundBuffer {
-            vao,
+            vao: vao.clone(),
             buffer,
             capacity: self.data.borrow().len() as _,
             dirty: false,
         });
 
-        Ok(())
+        Ok(vao)
     }
 
     pub fn new(usage: BufferUsageHint) -> Self {
@@ -144,10 +145,6 @@ impl<T: VertexAttribute> AttributeBuffer<T> {
 
     pub fn is_empty(&self) -> bool {
         self.data.borrow().is_empty()
-    }
-
-    pub fn handle(self) -> BufferHandle<T> {
-        Rc::new(self)
     }
 }
 

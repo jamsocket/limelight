@@ -6,7 +6,7 @@ pub mod depth;
 pub mod enable;
 
 #[derive(Default)]
-pub struct State {
+pub struct StateDescriptor {
     pub blend_func: Option<BlendFunction>,
     pub culling: Option<CullingMode>,
     pub depth_func: Option<DepthFunction>,
