@@ -52,6 +52,7 @@ pub struct BufferHandleInner {
     data: RefCell<DataWithMarker>,
     attributes: Vec<SizedDataType>,
     usage_hint: BufferUsageHint,
+    instance_attribute: bool,
 }
 
 #[derive(Clone)]
@@ -76,20 +77,36 @@ impl GpuBind for Option<BufferHandle> {
 }
 
 impl BufferHandle {
-    pub fn new(usage_hint: BufferUsageHint, attributes: &[SizedDataType]) -> BufferHandle {
+    fn new_impl(
+        usage_hint: BufferUsageHint,
+        attributes: &[SizedDataType],
+        instance_attribute: bool,
+    ) -> BufferHandle {
         BufferHandle(Rc::new(BufferHandleInner {
             gl_objects: RefCell::new(None),
             data: RefCell::new(DataWithMarker::default()),
             attributes: attributes.iter().cloned().collect(),
             usage_hint,
+            instance_attribute,
         }))
+    }
+
+    pub fn new(usage_hint: BufferUsageHint, attributes: &[SizedDataType]) -> BufferHandle {
+        Self::new_impl(usage_hint, attributes, false)
+    }
+
+    pub fn new_instanced(
+        usage_hint: BufferUsageHint,
+        attributes: &[SizedDataType],
+    ) -> BufferHandle {
+        Self::new_impl(usage_hint, attributes, false)
     }
 
     pub fn set_data<T: Pod>(&self, data: Vec<T>) {
         *self.0.data.borrow_mut() = DataWithMarker {
             length: data.len(),
             data: Box::new(data),
-            dirty: true,            
+            dirty: true,
         };
     }
 
@@ -102,6 +119,7 @@ impl BufferHandle {
         data: &[u8],
         attributes: &[SizedDataType],
         usage_hint: BufferUsageHint,
+        instanced: bool,
     ) -> Result<BufferGlObjects> {
         let vao = gl
             .create_vertex_array()
@@ -114,11 +132,8 @@ impl BufferHandle {
             .ok_or_else(|| anyhow!("Couldn't create buffer."))?;
 
         gl.bind_buffer(BufferBindPoint::ArrayBuffer as _, Some(&buffer));
-        gl.buffer_data_with_u8_array(
-            BufferBindPoint::ArrayBuffer as _,
-            &data,
-            usage_hint as _,
-        );
+
+        gl.buffer_data_with_u8_array(BufferBindPoint::ArrayBuffer as _, &data, usage_hint as _);
 
         let mut offset: i32 = 0;
         let stride = attributes.iter().map(|d| d.byte_size()).sum();
@@ -132,8 +147,12 @@ impl BufferHandle {
                 stride,
                 offset,
             );
-            gl.enable_vertex_attrib_array(location as _);
 
+            if instanced {
+                gl.vertex_attrib_divisor(location as _, 1);
+            }
+
+            gl.enable_vertex_attrib_array(location as _);
             offset += attr.byte_size();
         }
 
@@ -172,7 +191,13 @@ impl BufferHandle {
                     gl.delete_buffer(Some(&gl_objects.buffer));
                     gl.delete_vertex_array(Some(&gl_objects.vao));
 
-                    *gl_objects = Self::create(gl, data.data.as_bytes(), &inner.attributes, inner.usage_hint)?;
+                    *gl_objects = Self::create(
+                        gl,
+                        data.data.as_bytes(),
+                        &inner.attributes,
+                        inner.usage_hint,
+                        inner.instance_attribute,
+                    )?;
                 }
             } else {
                 if !already_bound {
@@ -181,7 +206,13 @@ impl BufferHandle {
             }
         } else {
             // We have not created this buffer before.
-            *gl_objects = Some(Self::create(gl, data.data.as_bytes(), &inner.attributes, inner.usage_hint)?);
+            *gl_objects = Some(Self::create(
+                gl,
+                data.data.as_bytes(),
+                &inner.attributes,
+                inner.usage_hint,
+                inner.instance_attribute,
+            )?);
         }
 
         Ok(())

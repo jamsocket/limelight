@@ -71,6 +71,19 @@ impl ShadowGpu {
         Ok(())
     }
 
+    pub fn draw_arrays_instanced(
+        &mut self,
+        state: &GpuState,
+        mode: DrawMode,
+        first: i32,
+        count: i32,
+        instance_count: i32,
+    ) -> Result<()> {
+        self.set_state(state)?;
+        self.gl.draw_arrays_instanced(mode as _, first, count, instance_count);
+        Ok(())
+    }
+
     pub fn get_uniform_handle(&self, program: &ProgramHandle, name: &str) -> Result<UniformHandle> {
         let location = self
             .gl
