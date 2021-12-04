@@ -7,23 +7,33 @@ use std::{
 use crate::{
     shadow_gpu::{ProgramHandle, ShadowGpu, UniformHandle, UniformValueType},
     uniform::GenericUniform,
-    Uniform, VertexAttribute,
+    DrawMode, Uniform, VertexAttribute,
 };
 
 pub trait ProgramLike<T: VertexAttribute> {
-    fn get_program(&mut self, gpu: &mut ShadowGpu) -> Result<ProgramHandle>;
+    fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T>>;
+
+    fn draw_mode(&self) -> DrawMode;
 }
 
 pub struct BoundProgram<T: VertexAttribute> {
     handle: ProgramHandle,
-    uniforms: Vec<(UniformHandle, Box<dyn GenericUniform>)>,
+    pub uniforms: Vec<(UniformHandle, Box<dyn GenericUniform>)>,
+    draw_mode: DrawMode,
     _ph: PhantomData<T>,
+}
+
+impl<T: VertexAttribute> BoundProgram<T> {
+    pub fn handle(&self) -> ProgramHandle {
+        self.handle.clone()
+    }
 }
 
 pub struct UnboundProgram<T: VertexAttribute> {
     fragment_shader_source: String,
     vertex_shader_source: String,
     uniforms: HashMap<String, Box<dyn GenericUniform>>,
+    draw_mode: DrawMode,
     _ph: PhantomData<T>,
 }
 
@@ -47,10 +57,11 @@ impl<T: VertexAttribute> UnboundProgram<T> {
             fragment_shader_source: "".to_string(),
             vertex_shader_source: "".to_string(),
             uniforms: HashMap::new(),
+            draw_mode: DrawMode::Triangles,
         }
     }
 
-    pub fn bind(self, gpu: &mut ShadowGpu) -> Result<BoundProgram<T>> {
+    pub fn bind(self, gpu: &ShadowGpu) -> Result<BoundProgram<T>> {
         let vertex_shader = gpu.compile_vertex_shader(&self.vertex_shader_source)?;
         let fragment_shader = gpu.compile_fragment_shader(&self.fragment_shader_source)?;
 
@@ -71,6 +82,7 @@ impl<T: VertexAttribute> UnboundProgram<T> {
         Ok(BoundProgram {
             handle: program.clone(),
             uniforms: bound_uniforms,
+            draw_mode: self.draw_mode,
             _ph: PhantomData::default(),
         })
     }
@@ -82,19 +94,28 @@ pub enum Program<T: VertexAttribute> {
 }
 
 impl<T: VertexAttribute> Program<T> {
-    pub fn new(fragment_shader_source: &str, vertex_shader_source: &str) -> Self {
+    pub fn new(
+        fragment_shader_source: &str,
+        vertex_shader_source: &str,
+        draw_mode: DrawMode,
+    ) -> Self {
         Program::Unbound(UnboundProgram {
             fragment_shader_source: fragment_shader_source.to_string(),
             vertex_shader_source: vertex_shader_source.to_string(),
             uniforms: HashMap::new(),
+            draw_mode,
             _ph: PhantomData::default(),
         })
     }
 }
 
 impl<T: VertexAttribute> ProgramLike<T> for BoundProgram<T> {
-    fn get_program(&mut self, _gpu: &mut ShadowGpu) -> Result<ProgramHandle> {
-        Ok(self.handle.clone())
+    fn get_program(&mut self, _gpu: &ShadowGpu) -> Result<&BoundProgram<T>> {
+        Ok(self)
+    }
+
+    fn draw_mode(&self) -> DrawMode {
+        self.draw_mode
     }
 }
 
@@ -114,18 +135,28 @@ impl<T: VertexAttribute> Program<T> {
 }
 
 impl<T: VertexAttribute> ProgramLike<T> for Program<T> {
-    fn get_program(&mut self, gpu: &mut ShadowGpu) -> Result<ProgramHandle> {
+    fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T>> {
         match self {
-            Program::Bound(p) => Ok(p.handle.clone()),
+            Program::Bound(p) => Ok(p),
             Program::Unbound(p) => {
                 let mut dummy_program = UnboundProgram::new_dummy();
                 std::mem::swap(&mut dummy_program, p);
 
                 let result = dummy_program.bind(gpu)?;
-                let handle = result.handle.clone();
                 *self = Program::Bound(result);
-                Ok(handle)
+                
+                match self {
+                    Program::Bound(result) => Ok(result),
+                    _ => panic!()
+                }
             }
+        }
+    }
+
+    fn draw_mode(&self) -> DrawMode {
+        match self {
+            Program::Bound(p) => p.draw_mode,
+            Program::Unbound(p) => p.draw_mode,
         }
     }
 }

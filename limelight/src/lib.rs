@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-// pub mod buffer;
+pub mod buffer;
 pub mod draw_modes;
 pub mod program;
 pub mod renderer;
@@ -13,8 +13,10 @@ pub mod vertex_attribute;
 pub use bytemuck;
 pub use limelight_derive::{vertex_attribute, VertexAttribute};
 
-// pub use buffer::attribute_buffer::AttributeBuffer;
-// pub use buffer::types::BufferUsageHint;
+pub use buffer::{Buffer, DummyBuffer};
+pub use shadow_gpu::BufferUsageHint;
+pub use program::Program;
+pub use renderer::Renderer;
 pub use draw_modes::DrawMode;
 pub use uniform::Uniform;
 pub use vertex_attribute::{VertexAttribute, VertexAttributeBinding};

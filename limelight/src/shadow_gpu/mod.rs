@@ -1,8 +1,9 @@
-use self::{buffer::BufferHandle};
+pub use self::buffer::BufferHandle;
+pub use self::types::BufferUsageHint;
 use crate::{types::SizedDataType, DrawMode};
 use anyhow::{anyhow, Result};
 use std::{borrow::Borrow, collections::HashMap, rc::Rc};
-pub use uniforms::{UniformValue, UniformValueType, UniformHandle};
+pub use uniforms::{UniformHandle, UniformValue, UniformValueType};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
 
 mod buffer;
@@ -60,7 +61,7 @@ impl ShadowGpu {
 
     pub fn draw_arrays(
         &mut self,
-        state: &mut GpuState,
+        state: &GpuState,
         mode: DrawMode,
         first: i32,
         count: i32,
@@ -79,7 +80,7 @@ impl ShadowGpu {
         Ok(UniformHandle::new(location))
     }
 
-    fn set_state(&mut self, new_state: &mut GpuState) -> Result<()> {
+    fn set_state(&mut self, new_state: &GpuState) -> Result<()> {
         // Program
         if self.state.program != new_state.program {
             new_state.program.gpu_bind(&self.gl)?;
@@ -108,12 +109,12 @@ impl ShadowGpu {
         Ok(())
     }
 
-    pub fn create_buffer(&mut self, attributes: &[SizedDataType]) -> BufferHandle {
-        BufferHandle::new(attributes)
+    pub fn create_buffer(&mut self, usage_hint: BufferUsageHint, attributes: &[SizedDataType]) -> BufferHandle {
+        BufferHandle::new(usage_hint, attributes)
     }
 
     pub fn link_program(
-        &mut self,
+        &self,
         frag_shader: &FragmentShader,
         vertex_shader: &VertexShader,
         attribute_locations: &[String],

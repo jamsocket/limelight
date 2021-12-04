@@ -3,6 +3,7 @@ use crate::{
     types::SizedDataType,
 };
 use anyhow::{anyhow, Result};
+use bytemuck::Pod;
 use std::{cell::RefCell, rc::Rc};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
@@ -14,15 +15,33 @@ struct BufferGlObjects {
     capacity: usize,
 }
 
+trait AsBytes {
+    fn as_bytes(&self) -> &[u8];
+
+    fn byte_len(&self) -> usize;
+}
+
+impl<T: Pod> AsBytes for Vec<T> {
+    fn as_bytes(&self) -> &[u8] {
+        bytemuck::cast_slice(self)
+    }
+
+    fn byte_len(&self) -> usize {
+        self.len() * std::mem::size_of::<T>() / std::mem::size_of::<u8>()
+    }
+}
+
 struct DataWithMarker {
-    data: Vec<u8>,
+    data: Box<dyn AsBytes>,
+    length: usize,
     dirty: bool,
 }
 
 impl Default for DataWithMarker {
     fn default() -> Self {
         DataWithMarker {
-            data: Vec::new(),
+            data: Box::new(Vec::<u8>::new()),
+            length: 0,
             dirty: true,
         }
     }
@@ -32,6 +51,7 @@ pub struct BufferHandleInner {
     gl_objects: RefCell<Option<BufferGlObjects>>,
     data: RefCell<DataWithMarker>,
     attributes: Vec<SizedDataType>,
+    usage_hint: BufferUsageHint,
 }
 
 #[derive(Clone)]
@@ -56,18 +76,32 @@ impl GpuBind for Option<BufferHandle> {
 }
 
 impl BufferHandle {
-    pub fn new(attributes: &[SizedDataType]) -> BufferHandle {
+    pub fn new(usage_hint: BufferUsageHint, attributes: &[SizedDataType]) -> BufferHandle {
         BufferHandle(Rc::new(BufferHandleInner {
             gl_objects: RefCell::new(None),
             data: RefCell::new(DataWithMarker::default()),
             attributes: attributes.iter().cloned().collect(),
+            usage_hint,
         }))
+    }
+
+    pub fn set_data<T: Pod>(&self, data: Vec<T>) {
+        *self.0.data.borrow_mut() = DataWithMarker {
+            length: data.len(),
+            data: Box::new(data),
+            dirty: true,            
+        };
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.data.borrow().length
     }
 
     fn create(
         gl: &WebGl2RenderingContext,
         data: &[u8],
         attributes: &[SizedDataType],
+        usage_hint: BufferUsageHint,
     ) -> Result<BufferGlObjects> {
         let vao = gl
             .create_vertex_array()
@@ -83,7 +117,7 @@ impl BufferHandle {
         gl.buffer_data_with_u8_array(
             BufferBindPoint::ArrayBuffer as _,
             &data,
-            BufferUsageHint::DynamicDraw as _,
+            usage_hint as _,
         );
 
         let mut offset: i32 = 0;
@@ -123,7 +157,7 @@ impl BufferHandle {
 
         if let Some(gl_objects) = &mut *gl_objects {
             if data.dirty {
-                if gl_objects.capacity > data.data.len() {
+                if gl_objects.capacity > data.data.byte_len() {
                     if !already_bound {
                         gl.bind_vertex_array(Some(&gl_objects.vao));
                     }
@@ -131,14 +165,14 @@ impl BufferHandle {
                     gl.buffer_sub_data_with_i32_and_u8_array(
                         BufferBindPoint::ArrayBuffer as _,
                         0,
-                        &data.data,
+                        data.data.as_bytes(),
                     );
                 } else {
                     // The current buffer isn't big enough, need to discard it and create a new one.
                     gl.delete_buffer(Some(&gl_objects.buffer));
                     gl.delete_vertex_array(Some(&gl_objects.vao));
 
-                    *gl_objects = Self::create(gl, &data.data, &inner.attributes)?;
+                    *gl_objects = Self::create(gl, data.data.as_bytes(), &inner.attributes, inner.usage_hint)?;
                 }
             } else {
                 if !already_bound {
@@ -147,7 +181,7 @@ impl BufferHandle {
             }
         } else {
             // We have not created this buffer before.
-            *gl_objects = Some(Self::create(gl, &data.data, &inner.attributes)?);
+            *gl_objects = Some(Self::create(gl, data.data.as_bytes(), &inner.attributes, inner.usage_hint)?);
         }
 
         Ok(())

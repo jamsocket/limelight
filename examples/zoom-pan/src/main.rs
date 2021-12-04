@@ -1,6 +1,4 @@
-use limelight::{
-    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer,
-};
+use limelight::{vertex_attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use limelight_transform::TransformUniform;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, MouseEvent, WebGl2RenderingContext, WheelEvent};
@@ -11,15 +9,25 @@ use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 const HEIGHT: i32 = 900;
 const WIDTH: i32 = 900;
 
-struct Animation {
-    program: GlProgram<VertexDescription>,
-    buffer: AttributeBuffer<VertexDescription>,
+struct Scene {
+    program: Program<VertexDescription>,
+    buffer: Buffer<VertexDescription>,
     transform: TransformUniform,
 }
 
-impl Animation {
-    pub fn new(gl: &WebGl2RenderingContext) -> Self {
-        let mut buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+impl Scene {
+    pub fn new() -> Self {
+        let theta1 = 0.;
+        let theta2 = theta1 + (std::f32::consts::TAU / 3.);
+        let theta3 = theta2 + (std::f32::consts::TAU / 3.);
+
+        let data = vec![
+            VertexDescription::new(theta1.cos(), theta1.sin()),
+            VertexDescription::new(theta2.cos(), theta2.sin()),
+            VertexDescription::new(theta3.cos(), theta3.sin()),
+        ];
+
+        let buffer = Buffer::new(data, BufferUsageHint::DynamicDraw);
         let transform = TransformUniform::new();
 
         let program = Program::new(
@@ -27,21 +35,9 @@ impl Animation {
             include_str!("../shaders/shader.vert"),
             DrawMode::Triangles,
         )
-        .with_uniform("u_transform", transform.uniform())
-        .gpu_init(&gl)
-        .unwrap();
+        .with_uniform("u_transform", transform.uniform());
 
-        let theta1 = 0.;
-        let theta2 = theta1 + (std::f32::consts::TAU / 3.);
-        let theta3 = theta2 + (std::f32::consts::TAU / 3.);
-
-        buffer.set_data(vec![
-            VertexDescription::new(theta1.cos(), theta1.sin()),
-            VertexDescription::new(theta2.cos(), theta2.sin()),
-            VertexDescription::new(theta3.cos(), theta3.sin()),
-        ]);
-
-        Animation {
+        Scene {
             buffer,
             program,
             transform,
@@ -56,8 +52,8 @@ impl Animation {
         self.transform.scale(scale_factor, scale_center);
     }
 
-    pub fn render(&mut self, renderer: &Renderer) {
-        renderer.render(&self.program, &self.buffer).unwrap();
+    pub fn render(&mut self, renderer: &mut Renderer) {
+        renderer.render(&mut self.program, &self.buffer).unwrap();
     }
 }
 
@@ -84,7 +80,7 @@ struct Model {
     link: ComponentLink<Self>,
     canvas_ref: NodeRef,
     renderer: Option<Renderer>,
-    animation: Option<Animation>,
+    scene: Scene,
     render_handle: Option<RenderTask>,
     drag_origin: Option<(i32, i32)>,
 }
@@ -99,7 +95,7 @@ impl Component for Model {
             canvas_ref: NodeRef::default(),
             render_handle: None,
             renderer: None,
-            animation: None,
+            scene: Scene::new(),
             drag_origin: None,
         }
     }
@@ -113,7 +109,6 @@ impl Component for Model {
             .dyn_into()
             .unwrap();
 
-        self.animation = Some(Animation::new(&gl));
         self.renderer = Some(Renderer::new(gl));
 
         self.render_handle = Some(RenderService::request_animation_frame(
@@ -124,10 +119,8 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Render(_) => {
-                if let Some(renderer) = self.renderer.as_ref() {
-                    if let Some(animation) = &mut self.animation {
-                        animation.render(renderer);
-                    }
+                if let Some(renderer) = self.renderer.as_mut() {
+                    self.scene.render(renderer);
                 }
 
                 self.render_handle = Some(RenderService::request_animation_frame(
@@ -144,12 +137,10 @@ impl Component for Model {
                 if let Some((origin_x, origin_y)) = self.drag_origin {
                     let (new_x, new_y) = (e.offset_x(), e.offset_y());
 
-                    if let Some(animation) = &mut self.animation {
-                        animation.pan(
-                            2. * (new_x - origin_x) as f32 / WIDTH as f32,
-                            2. * -(new_y - origin_y) as f32 / HEIGHT as f32,
-                        );
-                    }
+                    self.scene.pan(
+                        2. * (new_x - origin_x) as f32 / WIDTH as f32,
+                        2. * -(new_y - origin_y) as f32 / HEIGHT as f32,
+                    );
 
                     self.drag_origin = Some((new_x, new_y));
                 }
@@ -161,9 +152,7 @@ impl Component for Model {
                 let pin_x = (2 * e.offset_x()) as f32 / WIDTH as f32 - 1.;
                 let pin_y = -((2 * e.offset_y()) as f32 / HEIGHT as f32 - 1.);
 
-                if let Some(animation) = &mut self.animation {
-                    animation.scale(scale_factor, (pin_x, pin_y));
-                }
+                self.scene.scale(scale_factor, (pin_x, pin_y));
 
                 e.prevent_default();
             }

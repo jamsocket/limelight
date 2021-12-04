@@ -18,3 +18,9 @@ impl VertexAttributeBinding {
 pub trait VertexAttribute: bytemuck::Pod + bytemuck::Zeroable {
     fn describe() -> Vec<VertexAttributeBinding>;
 }
+
+impl VertexAttribute for () {
+    fn describe() -> Vec<VertexAttributeBinding> {
+        Vec::new()
+    }
+}

@@ -1,4 +1,4 @@
-use std::{rc::Rc, hash::Hash, borrow::Borrow};
+use std::{borrow::Borrow, hash::Hash, rc::Rc};
 
 use slice_of_array::SliceFlatExt;
 use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
@@ -86,5 +86,41 @@ pub trait UniformValueType: Clone + 'static {
 impl UniformValueType for f32 {
     fn into_uniform_value(v: &f32) -> UniformValue {
         UniformValue::Float(*v)
+    }
+}
+
+impl UniformValueType for [f32; 2] {
+    fn into_uniform_value(v: &[f32; 2]) -> UniformValue {
+        UniformValue::Vec2(*v)
+    }
+}
+
+impl UniformValueType for [f32; 3] {
+    fn into_uniform_value(v: &[f32; 3]) -> UniformValue {
+        UniformValue::Vec3(*v)
+    }
+}
+
+impl UniformValueType for [f32; 4] {
+    fn into_uniform_value(v: &[f32; 4]) -> UniformValue {
+        UniformValue::Vec4(*v)
+    }
+}
+
+impl UniformValueType for [[f32; 2]; 2] {
+    fn into_uniform_value(v: &[[f32; 2]; 2]) -> UniformValue {
+        UniformValue::Mat2(*v)
+    }
+}
+
+impl UniformValueType for [[f32; 3]; 3] {
+    fn into_uniform_value(v: &[[f32; 3]; 3]) -> UniformValue {
+        UniformValue::Mat3(*v)
+    }
+}
+
+impl UniformValueType for [[f32; 4]; 4] {
+    fn into_uniform_value(v: &[[f32; 4]; 4]) -> UniformValue {
+        UniformValue::Mat4(*v)
     }
 }
