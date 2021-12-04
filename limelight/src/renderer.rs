@@ -1,35 +1,44 @@
-use crate::{buffer::BufferLike, program::GlProgram, vertex_attribute::VertexAttribute, GpuBind};
-use anyhow::{anyhow, Result};
+use std::collections::HashMap;
+
+use crate::{
+    buffer::BufferLike,
+    program::ProgramLike,
+    shadow_gpu::{GpuState, ShadowGpu},
+    vertex_attribute::VertexAttribute,
+};
+use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 pub struct Renderer {
-    gl: WebGl2RenderingContext,
+    gpu: ShadowGpu,
 }
 
 impl Renderer {
     pub fn new(gl: WebGl2RenderingContext) -> Self {
-        Renderer { gl }
+        let gpu = ShadowGpu::new(gl);
+        Renderer { gpu }
     }
 
     pub fn render<T: VertexAttribute>(
-        &self,
-        program: &GlProgram<T>,
+        &mut self,
+        program: &mut impl ProgramLike<T>,
         buffer: &impl BufferLike<T>,
     ) -> Result<()> {
-        buffer.gpu_bind(&self.gl)?;
-        program.gpu_bind(&self.gl)?;
-        self.gl
-            .draw_arrays(program.draw_mode() as _, 0, buffer.len() as _);
+        let bound_program = program.get_program(&self.gpu)?;
 
-        Ok(())
-    }
-
-    pub fn get_error(&self) -> Result<()> {
-        let error = self.gl.get_error();
-        if error != WebGl2RenderingContext::NO_ERROR {
-            Err(anyhow!("WebGL Error: {:?}", error))
-        } else {
-            Ok(())
+        let mut uniforms = HashMap::new();
+        for (uniform_handle, uniform) in &bound_program.uniforms {
+            uniforms.insert(uniform_handle.clone(), uniform.get_value());
         }
+
+        let state: GpuState = GpuState {
+            program: Some(bound_program.handle()),
+            buffer: buffer.get_buffer(),
+            uniforms,
+        };
+
+        self.gpu
+            .draw_arrays(&state, program.draw_mode(), 0, buffer.len() as _)?;
+        Ok(())
     }
 }

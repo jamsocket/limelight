@@ -9,23 +9,21 @@ fn render_triangle(gl: WebGl2RenderingContext) {
 
     // Create a shader program by passing in GLSL code as strings for
     // the fragment and vertex shaders.
-    let program = Program::new(
+    let mut program = Program::new(
         include_str!("../shaders/shader.frag"),
         include_str!("../shaders/shader.vert"),
         DrawMode::Triangles,
-    )
-    .gpu_init(&gl)
-    .unwrap();
+    );
 
     // Create a renderer. The renderer becomes the owner of the
     // WebGl2RenderingContext, to ensure that its internal representation
     // of the GPU state is always accureate.
-    let renderer = Renderer::new(gl);
+    let mut renderer = Renderer::new(gl);
 
     // Run the program, rendering the results to the screen. We are
     // not passing any vertex attribute data, so we use a `DummyBuffer`
     // which renders three vertices: one for each corner of a triangle.
-    renderer.render(&program, &DummyBuffer::new(3)).unwrap();
+    renderer.render(&mut program, &DummyBuffer::new(3)).unwrap();
 }
 
 fn get_gl() -> WebGl2RenderingContext {

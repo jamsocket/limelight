@@ -12,7 +12,7 @@ In particular, it:
 - Provides a functional interface that **abstracts away the statefulness of WebGL**.
   It accomplishes this by using a *shadow GPU* that tracks the GPU's state, diffs it with the
   desired state, and sends only the necessary instructions to WebGL.
-- Provides abstractions for buffers and uniforms that **defer GPU calls until the draw cycle**.
+- Provides abstractions for buffers and uniforms that **defer GPU data transfer until the next draw cycle**.
 - Provides a **typed interface to uniforms and buffers**, and automatically generates bindings
   between shader attributes and Rust `struct`s through a derive macro.
 
@@ -33,9 +33,7 @@ uniforms, and buffers.
 
 This example demonstrates the three main steps to produce an image with limelight:
 1. Create a `Program` object. A `Program` in limelight contains the vertex and fragment shader pair
-   (a `WebGLProgram` object), and also contains program-specific state. The `Program` object itself acts
-   as a [builder](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html) for a `GlProgram`, which
-   we obtain by calling `gpu_init(&gl)` where `gl` is a [`WebGl2RenderingContext`](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext).
+   (a `WebGLProgram` object), and also contains program-specific state.
 2. Create a `Renderer`. After we have initialized all of our programs with the GL context, we transfer ownership
    of the GL context into a `Renderer`, which then becomes responsible for all GL-side state transitions.
 3. We call `renderer.render(program, buffer)`, which causes the triangle to be drawn. We have not attached a
@@ -53,21 +51,21 @@ fn render_triangle(gl: WebGl2RenderingContext) {
 
   // Create a shader program by passing in GLSL code as strings for
   // the fragment and vertex shaders.
-  let program = Program::new(
+  let mut program = Program::new(
       include_str!("../../examples/01-triangle/shaders/shader.frag"),
       include_str!("../../examples/01-triangle/shaders/shader.vert"),
       DrawMode::Triangles
-  ).gpu_init(&gl).unwrap();
+  );
 
   // Create a renderer. The renderer becomes the owner of the
   // WebGl2RenderingContext, to ensure that its internal representation
   // of the GPU state is always accureate.
-  let renderer = Renderer::new(gl);
+  let mut renderer = Renderer::new(gl);
 
   // Run the program, rendering the results to the screen. We are
   // not passing any vertex attribute data, so we use a `DummyBuffer`
   // which renders three vertices: one for each corner of a triangle.
-  renderer.render(&program, &DummyBuffer::new(3)).unwrap();
+  renderer.render(&mut program, &DummyBuffer::new(3)).unwrap();
 }
 ```
 
@@ -89,10 +87,10 @@ to the GPU.
 
 ```rust
 use web_sys::WebGl2RenderingContext;
-use limelight::{Program, Renderer, AttributeBuffer, DrawMode, BufferUsageHint, vertex_attribute};
+use limelight::{Program, Renderer, Buffer, DrawMode, BufferUsageHint, vertex_attribute};
 
 // This attribute macro derives a number of traits, including `VertexAttribute`, which
-// is required for a type to be used in an `AttributeBuffer`.
+// is required for a type to be used in an `Buffer`.
 #[vertex_attribute]
 struct VertexDescription {
     position: [f32; 2], // field names are mapped to variables in the shader.
@@ -105,19 +103,15 @@ impl VertexDescription {
 }
 
 fn render_triangles(gl: WebGl2RenderingContext) {
-  let program = Program::new(
+  let mut program = Program::new(
       include_str!("../../examples/02-buffer/shaders/shader.frag"),
       include_str!("../../examples/02-buffer/shaders/shader.vert"),
       DrawMode::Triangles
-  ).gpu_init(&gl).unwrap();
+  );
 
-  let renderer = Renderer::new(gl);
+  let mut renderer = Renderer::new(gl);
 
-  // Declare a buffer.
-  let mut buffer: AttributeBuffer<VertexDescription> =
-    AttributeBuffer::new(BufferUsageHint::StaticDraw);
-
-  buffer.set_data(vec![
+  let data = vec![
       // Lower-left triangle.
       VertexDescription::new(-0.1, -0.1),
       VertexDescription::new(-0.5, -0.1),
@@ -126,9 +120,13 @@ fn render_triangles(gl: WebGl2RenderingContext) {
       VertexDescription::new(0.1, 0.1),
       VertexDescription::new(0.5, 0.1),
       VertexDescription::new(0.5, 0.5),
-  ]);
+  ];
 
-  renderer.render(&program, &buffer).unwrap();
+  // Declare a buffer.
+  let mut buffer: Buffer<VertexDescription> =
+    Buffer::new(data, BufferUsageHint::StaticDraw);
+
+  renderer.render(&mut program, &buffer).unwrap();
 }
 ```
 
@@ -139,7 +137,7 @@ fn render_triangles(gl: WebGl2RenderingContext) {
 
 [![A scaled and rotated triangle](https://github.com/drifting-in-space/limelight/raw/main/assets/03-uniform.png)](https://drifting-in-space.github.io/limelight/03-uniform/)
 
-Uniforms are values that can be ready in both shader and fragment programs. They can vary
+Uniforms are values that can be used in both shader and fragment programs. They can vary
 between `render` calls, but for a given render call each uniform has a constant value
 across all vertices and fragments.
 
@@ -157,21 +155,19 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
     // This will correspond to "uniform vec3 u_color" in the fragment shader.
     let color_uniform = Uniform::new([0.9, 0.2, 0.3]);
 
-    let program = Program::new(
+    let mut program = Program::new(
       include_str!("../../examples/03-uniform/shaders/shader.frag"),
       include_str!("../../examples/03-uniform/shaders/shader.vert"),
-        DrawMode::Triangles,
+      DrawMode::Triangles,
     )
     // We need to map the uniforms when we create the program.
     // The GPU-side types are automatically inferred from the Rust types.
     .with_uniform("u_rotate", rotate_uniform)
     .with_uniform("u_scale", scale_uniform)
-    .with_uniform("u_color", color_uniform)
-    .gpu_init(&gl)
-    .unwrap();
+    .with_uniform("u_color", color_uniform);
 
-    let renderer = Renderer::new(gl);
-    renderer.render(&program, &DummyBuffer::new(3)).unwrap();
+    let mut renderer = Renderer::new(gl);
+    renderer.render(&mut program, &DummyBuffer::new(3)).unwrap();
 }
 ```
 
@@ -190,19 +186,19 @@ on how you structure your code. This example shows one way you might choose to s
 a simple animation.
 
 ```rust
-use limelight::{AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer, Uniform, vertex_attribute};
+use limelight::{Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform, vertex_attribute};
 use web_sys::WebGl2RenderingContext;
 use std::rc::Rc;
 
 struct Animation {
-    program: GlProgram<VertexDescription>,
-    buffer: AttributeBuffer<VertexDescription>,
-    uniform: Rc<Uniform<[f32; 3]>>,
+    program: Program<VertexDescription>,
+    buffer: Buffer<VertexDescription>,
+    uniform: Uniform<[f32; 3]>,
 }
 
 impl Animation {
     pub fn new(gl: &WebGl2RenderingContext) -> Self {
-        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+        let buffer = Buffer::new(vec![], BufferUsageHint::DynamicDraw);
         let uniform = Uniform::new([0., 0., 0.]);
 
         let program = Program::new(
@@ -213,9 +209,7 @@ impl Animation {
         // Note that we clone uniform, so that we can retain a handle to it.
         // Uniform::new returns an Rc<Uniform<T>>, so cloning it returns a
         // reference to the same object.
-        .with_uniform("u_color", uniform.clone())
-        .gpu_init(&gl)
-        .unwrap();       
+        .with_uniform("u_color", uniform.clone());       
         
         Animation {
             buffer,
@@ -224,7 +218,7 @@ impl Animation {
         }
     }
 
-    pub fn render(&mut self, time: f64, renderer: &Renderer) {
+    pub fn render(&mut self, time: f64, renderer: &mut Renderer) {
         let theta1 = time as f32 / 1000.;
         let theta2 = theta1 + (std::f32::consts::TAU / 3.);
         let theta3 = theta2 + (std::f32::consts::TAU / 3.);
@@ -241,7 +235,7 @@ impl Animation {
 
         self.uniform.set_value([r, g, b]);
 
-        renderer.render(&self.program, &self.buffer).unwrap();
+        renderer.render(&mut self.program, &self.buffer).unwrap();
     }
 }
 

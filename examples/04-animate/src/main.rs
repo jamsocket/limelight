@@ -1,8 +1,4 @@
-use limelight::{
-    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer,
-    Uniform,
-};
-use std::rc::Rc;
+use limelight::{vertex_attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
@@ -10,14 +6,14 @@ use yew::services::RenderService;
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 
 struct Animation {
-    program: GlProgram<VertexDescription>,
-    buffer: AttributeBuffer<VertexDescription>,
-    uniform: Rc<Uniform<[f32; 3]>>,
+    program: Program<VertexDescription>,
+    buffer: Buffer<VertexDescription>,
+    uniform: Uniform<[f32; 3]>,
 }
 
 impl Animation {
-    pub fn new(gl: &WebGl2RenderingContext) -> Self {
-        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+    pub fn new() -> Self {
+        let buffer = Buffer::new(vec![], BufferUsageHint::DynamicDraw);
         let uniform = Uniform::new([0., 0., 0.]);
 
         let program = Program::new(
@@ -25,9 +21,7 @@ impl Animation {
             include_str!("../shaders/shader.vert"),
             DrawMode::Triangles,
         )
-        .with_uniform("u_color", uniform.clone())
-        .gpu_init(&gl)
-        .unwrap();
+        .with_uniform("u_color", uniform.clone());
 
         Animation {
             buffer,
@@ -36,7 +30,7 @@ impl Animation {
         }
     }
 
-    pub fn render(&mut self, time: f64, renderer: &Renderer) {
+    pub fn render(&mut self, time: f64, renderer: &mut Renderer) {
         let theta1 = time as f32 / 1000.;
         let theta2 = theta1 + (std::f32::consts::TAU / 3.);
         let theta3 = theta2 + (std::f32::consts::TAU / 3.);
@@ -53,7 +47,7 @@ impl Animation {
 
         self.uniform.set_value([r, g, b]);
 
-        renderer.render(&self.program, &self.buffer).unwrap();
+        renderer.render(&mut self.program, &self.buffer).unwrap();
     }
 }
 
@@ -76,7 +70,7 @@ struct Model {
     link: ComponentLink<Self>,
     canvas_ref: NodeRef,
     renderer: Option<Renderer>,
-    animation: Option<Animation>,
+    animation: Animation,
     render_handle: Option<RenderTask>,
 }
 
@@ -90,7 +84,7 @@ impl Component for Model {
             canvas_ref: NodeRef::default(),
             render_handle: None,
             renderer: None,
-            animation: None,
+            animation: Animation::new(),
         }
     }
 
@@ -103,7 +97,6 @@ impl Component for Model {
             .dyn_into()
             .unwrap();
 
-        self.animation = Some(Animation::new(&gl));
         self.renderer = Some(Renderer::new(gl));
 
         self.render_handle = Some(RenderService::request_animation_frame(
@@ -114,10 +107,8 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Render(ts) => {
-                if let Some(renderer) = self.renderer.as_ref() {
-                    if let Some(animation) = &mut self.animation {
-                        animation.render(ts, renderer);
-                    }
+                if let Some(renderer) = self.renderer.as_mut() {
+                    self.animation.render(ts, renderer);
                 }
 
                 self.render_handle = Some(RenderService::request_animation_frame(

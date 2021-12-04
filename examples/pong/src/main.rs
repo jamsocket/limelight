@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use limelight::{
-    vertex_attribute, AttributeBuffer, BufferUsageHint, DrawMode, GlProgram, Program, Renderer,
+    vertex_attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, KeyboardEvent, WebGl2RenderingContext};
@@ -155,10 +155,10 @@ enum Msg {
 
 struct Model {
     link: ComponentLink<Self>,
-    buffer: AttributeBuffer<VertexDescription>,
+    buffer: Buffer<VertexDescription>,
     canvas_ref: NodeRef,
     renderer: Option<Renderer>,
-    program: Option<GlProgram<VertexDescription>>,
+    program: Program<VertexDescription>,
     render_handle: Option<RenderTask>,
     state: GameState,
     _key_down_handle: KeyListenerHandle,
@@ -171,12 +171,18 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let buffer = AttributeBuffer::new(BufferUsageHint::DynamicDraw);
+        let buffer = Buffer::new(vec![], BufferUsageHint::DynamicDraw);
         let state = GameState::default();
         let key_down_handle =
             KeyboardService::register_key_down(&yew::utils::window(), link.callback(Msg::KeyDown));
         let key_up_handle =
             KeyboardService::register_key_up(&yew::utils::window(), link.callback(Msg::KeyUp));
+
+        let program =  Program::new(
+            include_str!("../shaders/shader.frag"),
+            include_str!("../shaders/shader.vert"),
+            DrawMode::Triangles,
+        );
 
         Self {
             link,
@@ -184,7 +190,7 @@ impl Component for Model {
             canvas_ref: NodeRef::default(),
             render_handle: None,
             renderer: None,
-            program: None,
+            program,
             state,
             _key_down_handle: key_down_handle,
             _key_up_handle: key_up_handle,
@@ -202,16 +208,6 @@ impl Component for Model {
             .dyn_into()
             .unwrap();
 
-        self.program = Some(
-            Program::new(
-                include_str!("../shaders/shader.frag"),
-                include_str!("../shaders/shader.vert"),
-                DrawMode::Triangles,
-            )
-            .gpu_init(&gl)
-            .unwrap(),
-        );
-
         self.renderer = Some(Renderer::new(gl));
 
         self.render_handle = Some(RenderService::request_animation_frame(
@@ -226,9 +222,9 @@ impl Component for Model {
                 self.state.step();
                 self.buffer.set_data(self.state.into_quads());
 
-                if let Some(renderer) = self.renderer.as_ref() {
+                if let Some(renderer) = self.renderer.as_mut() {
                     renderer
-                        .render(self.program.as_ref().unwrap(), &self.buffer)
+                        .render(&mut self.program, &self.buffer)
                         .unwrap();
                 }
 

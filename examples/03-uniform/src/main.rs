@@ -7,19 +7,17 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
     let scale_uniform = Uniform::new([0.5, 0.8]);
     let color_uniform = Uniform::new([0.9, 0.2, 0.3]);
 
-    let program = Program::new(
+    let mut program = Program::new(
         include_str!("../shaders/shader.frag"),
         include_str!("../shaders/shader.vert"),
         DrawMode::Triangles,
     )
     .with_uniform("u_rotate", rotate_uniform)
     .with_uniform("u_scale", scale_uniform)
-    .with_uniform("u_color", color_uniform)
-    .gpu_init(&gl)
-    .unwrap();
+    .with_uniform("u_color", color_uniform);
 
-    let renderer = Renderer::new(gl);
-    renderer.render(&program, &DummyBuffer::new(3)).unwrap();
+    let mut renderer = Renderer::new(gl);
+    renderer.render(&mut program, &DummyBuffer::new(3)).unwrap();
 }
 
 fn get_gl() -> WebGl2RenderingContext {

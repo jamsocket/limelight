@@ -1,6 +1,4 @@
-use std::rc::Rc;
-
-use limelight::{DrawMode, DummyBuffer, GlProgram, Program, Renderer, Uniform};
+use limelight::{DrawMode, DummyBuffer, Program, Renderer, Uniform};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, MouseEvent, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
@@ -16,10 +14,10 @@ struct Model {
     link: ComponentLink<Self>,
     canvas_ref: NodeRef,
     renderer: Option<Renderer>,
-    program: Option<GlProgram<()>>,
+    program: Program<()>,
     render_handle: Option<RenderTask>,
-    time_uniform: Rc<Uniform<f32>>,
-    pos_uniform: Rc<Uniform<[f32; 2]>>,
+    time_uniform: Uniform<f32>,
+    pos_uniform: Uniform<[f32; 2]>,
 }
 
 impl Component for Model {
@@ -27,14 +25,25 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let time_uniform = Uniform::new(0.0);
+        let pos_uniform = Uniform::new([0.0, 0.0]);
+
+        let program = Program::new(
+            include_str!("../shaders/shader.frag"),
+            include_str!("../shaders/shader.vert"),
+            DrawMode::Triangles,
+        )
+        .with_uniform("u_time", time_uniform.clone())
+        .with_uniform("u_pos", pos_uniform.clone());
+
         Self {
             link,
             canvas_ref: NodeRef::default(),
             render_handle: None,
             renderer: None,
-            program: None,
-            time_uniform: Uniform::new(0.0),
-            pos_uniform: Uniform::new([0.0, 0.0]),
+            program,
+            time_uniform,
+            pos_uniform,
         }
     }
 
@@ -46,18 +55,6 @@ impl Component for Model {
             .unwrap()
             .dyn_into()
             .unwrap();
-
-        self.program = Some(
-            Program::new(
-                include_str!("../shaders/shader.frag"),
-                include_str!("../shaders/shader.vert"),
-                DrawMode::Triangles,
-            )
-            .with_uniform("u_time", self.time_uniform.clone())
-            .with_uniform("u_pos", self.pos_uniform.clone())
-            .gpu_init(&gl)
-            .unwrap(),
-        );
 
         self.renderer = Some(Renderer::new(gl));
 
@@ -72,9 +69,9 @@ impl Component for Model {
                 let ts = ts / 1000.;
                 self.time_uniform.set_value(ts as _);
 
-                if let Some(renderer) = self.renderer.as_ref() {
+                if let Some(renderer) = self.renderer.as_mut() {
                     renderer
-                        .render(self.program.as_ref().unwrap(), &DummyBuffer::new(3))
+                        .render(&mut self.program, &DummyBuffer::new(3))
                         .unwrap();
                 }
 
