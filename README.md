@@ -23,7 +23,7 @@ runnable examples.
 
 This tutorial assumes you're familiar with basic WebGL terminology, like vertex and fragment shaders,
 uniforms, and buffers.
-No
+
 ### Drawing a triangle
 
 ([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/01-triangle),
