@@ -1,5 +1,30 @@
+use std::{rc::Rc, hash::Hash, borrow::Borrow};
+
 use slice_of_array::SliceFlatExt;
 use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
+
+#[derive(Clone)]
+pub struct UniformHandle(Rc<WebGlUniformLocation>);
+
+impl UniformHandle {
+    pub fn new(location: WebGlUniformLocation) -> Self {
+        UniformHandle(Rc::new(location))
+    }
+}
+
+impl Hash for UniformHandle {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        Rc::as_ptr(&self.0).hash(state)
+    }
+}
+
+impl PartialEq for UniformHandle {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl Eq for UniformHandle {}
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum UniformValue {
@@ -18,13 +43,13 @@ pub enum UniformValue {
     UnsignedIntVec2([u32; 2]),
     UnsignedIntVec3([u32; 3]),
     UnsignedIntVec4([u32; 4]),
-
     // TODO: non-square matrices are supported by WebGL2:
     // https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/uniformMatrix
 }
 
 impl UniformValue {
-    pub fn bind(&self, gl: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
+    pub fn bind(&self, gl: &WebGl2RenderingContext, handle: &UniformHandle) {
+        let location = handle.0.borrow();
         match self {
             UniformValue::Float(v) => gl.uniform1f(Some(location), *v),
             UniformValue::Vec2(v) => gl.uniform2fv_with_f32_array(Some(location), v),
@@ -41,9 +66,15 @@ impl UniformValue {
             UniformValue::UnsignedIntVec3(v) => gl.uniform3uiv_with_u32_array(Some(location), v),
             UniformValue::UnsignedIntVec4(v) => gl.uniform4uiv_with_u32_array(Some(location), v),
 
-            UniformValue::Mat2(v) => gl.uniform_matrix2fv_with_f32_array(Some(location), false, v.flat()),
-            UniformValue::Mat3(v) => gl.uniform_matrix3fv_with_f32_array(Some(location), false, v.flat()),
-            UniformValue::Mat4(v) => gl.uniform_matrix4fv_with_f32_array(Some(location), false, v.flat()),
+            UniformValue::Mat2(v) => {
+                gl.uniform_matrix2fv_with_f32_array(Some(location), false, v.flat())
+            }
+            UniformValue::Mat3(v) => {
+                gl.uniform_matrix3fv_with_f32_array(Some(location), false, v.flat())
+            }
+            UniformValue::Mat4(v) => {
+                gl.uniform_matrix4fv_with_f32_array(Some(location), false, v.flat())
+            }
         }
     }
 }

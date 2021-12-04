@@ -1,5 +1,5 @@
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
 use crate::shadow_gpu::{UniformValue, UniformValueType};
+use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 #[derive(Debug, Clone)]
 pub struct Uniform<T: UniformValueType> {

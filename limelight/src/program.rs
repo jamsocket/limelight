@@ -28,7 +28,11 @@ pub struct UnboundProgram<T: VertexAttribute> {
 }
 
 impl<T: VertexAttribute> UnboundProgram<T> {
-    pub fn with_uniform<U: UniformValueType>(&mut self, name: &str, uniform: Uniform<U>) -> &mut Self {
+    pub fn with_uniform<U: UniformValueType>(
+        &mut self,
+        name: &str,
+        uniform: Uniform<U>,
+    ) -> &mut Self {
         match self.uniforms.entry(name.to_string()) {
             Entry::Occupied(_) => panic!("Tried to set uniform {} more than once.", name),
             Entry::Vacant(e) => e.insert(Box::new(uniform.clone())),
@@ -55,8 +59,7 @@ impl<T: VertexAttribute> UnboundProgram<T> {
             .map(|d| d.variable_name.to_string())
             .collect();
 
-        let program =
-            gpu.link_program(&fragment_shader, &vertex_shader, &attribute_locations)?;
+        let program = gpu.link_program(&fragment_shader, &vertex_shader, &attribute_locations)?;
 
         let mut bound_uniforms = Vec::with_capacity(self.uniforms.len());
 

@@ -29,4 +29,3 @@ macro_rules! console_log {
 
 #[allow(unused)]
 pub(crate) use console_log;
-

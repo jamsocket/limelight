@@ -1,4 +1,8 @@
-use crate::{ program::ProgramLike, shadow_gpu::{GpuState, ShadowGpu}, vertex_attribute::VertexAttribute};
+use crate::{
+    program::ProgramLike,
+    shadow_gpu::{GpuState, ShadowGpu},
+    vertex_attribute::VertexAttribute,
+};
 use anyhow::{anyhow, Result};
 use web_sys::WebGl2RenderingContext;
 
@@ -17,14 +21,12 @@ impl Renderer {
         program: &mut impl ProgramLike<T>,
         //buffer: &impl BufferLike<T>,
     ) -> Result<()> {
-        
         // let state: GpuState = GpuState {
         //     program: Some(program.get_program(&mut self.gpu)?),
         //     buffer: Some(buffer.get_vao(&mut self.gpu)?),
         //     uniforms: todo!(),
         // };
-        
+
         Ok(())
     }
-
 }
