@@ -8,7 +8,7 @@
 Limelight is a `WebGL2` wrapper with a focus on making high-performance WebAssembly graphics code easier to
 write and maintain.
 
-In particular, it:
+Specifically, it:
 - Provides a functional interface that **abstracts away the statefulness of WebGL**.
   It accomplishes this by using a *shadow GPU* that tracks the GPU's state, diffs it with the
   desired state, and sends only the necessary instructions to WebGL.
@@ -23,7 +23,7 @@ runnable examples.
 
 This tutorial assumes you're familiar with basic WebGL terminology, like vertex and fragment shaders,
 uniforms, and buffers.
-
+No
 ### Drawing a triangle
 
 ([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/01-triangle),
