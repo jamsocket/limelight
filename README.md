@@ -80,11 +80,6 @@ Buffers enable arbitrary vertex attribute data to be passed into the shaders. Li
 procedural macro (`vertex_attribute`) for mapping from a Rust-side `struct` to a GPU-side set of
 vertex attributes.
 
-`buffer.set_data` is *lazy*: it does not result in any GPU activity until the next time the buffer is used
-in a render call. (See [WebGL Insights](http://www.webglinsights.com/) section 14.2,
-*Deferring until the Draw Cycle*.) If a buffer is unchanged between render calls, it is not re-written
-to the GPU.
-
 ```rust
 use web_sys::WebGl2RenderingContext;
 use limelight::{Program, Renderer, Buffer, DrawMode, BufferUsageHint, vertex_attribute};
@@ -182,13 +177,18 @@ animation. In this example, we separate the code into a `new()` method that is c
 and a `render` method that is called on every frame.
 
 limelight is not a framework, and in order to integrate with other frameworks, it is not opinionated
-on how you structure your code. This example shows one way you might choose to structure code for
-a simple animation.
+as to how you structure your code. This example shows one way you might choose to structure code for
+a simple animation (see the [full code](https://github.com/drifting-in-space/limelight/tree/main/examples/04-animate)
+to see how it can be integrated with the [Yew](https://yew.rs/) web framework).
+
+`buffer.set_data` and `uniform.set_data` are *lazy*: they do not result in any GPU activity until
+the next time the buffer is used in a render call. (See [WebGL Insights](http://www.webglinsights.com/)
+section 14.2, *Deferring until the Draw Cycle*.) If a buffer or uniform is unchanged between render
+calls, it is not re-written to the GPU.
 
 ```rust
 use limelight::{Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform, vertex_attribute};
 use web_sys::WebGl2RenderingContext;
-use std::rc::Rc;
 
 struct Animation {
     program: Program<VertexDescription>,
