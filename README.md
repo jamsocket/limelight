@@ -12,7 +12,7 @@ In particular, it:
 - Provides a functional interface that **abstracts away the statefulness of WebGL**.
   It accomplishes this by using a *shadow GPU* that tracks the GPU's state, diffs it with the
   desired state, and sends only the necessary instructions to WebGL.
-- Provides abstractions for buffers and uniforms that **defer GPU calls until the draw cycle**.
+- Provides abstractions for buffers and uniforms that **defer GPU data transfer until the next draw cycle**.
 - Provides a **typed interface to uniforms and buffers**, and automatically generates bindings
   between shader attributes and Rust `struct`s through a derive macro.
 
@@ -33,9 +33,7 @@ uniforms, and buffers.
 
 This example demonstrates the three main steps to produce an image with limelight:
 1. Create a `Program` object. A `Program` in limelight contains the vertex and fragment shader pair
-   (a `WebGLProgram` object), and also contains program-specific state. The `Program` object itself acts
-   as a [builder](https://doc.rust-lang.org/1.0.0/style/ownership/builders.html) for a `GlProgram`, which
-   we obtain by calling `gpu_init(&gl)` where `gl` is a [`WebGl2RenderingContext`](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext).
+   (a `WebGLProgram` object), and also contains program-specific state.
 2. Create a `Renderer`. After we have initialized all of our programs with the GL context, we transfer ownership
    of the GL context into a `Renderer`, which then becomes responsible for all GL-side state transitions.
 3. We call `renderer.render(program, buffer)`, which causes the triangle to be drawn. We have not attached a
@@ -139,7 +137,7 @@ fn render_triangles(gl: WebGl2RenderingContext) {
 
 [![A scaled and rotated triangle](https://github.com/drifting-in-space/limelight/raw/main/assets/03-uniform.png)](https://drifting-in-space.github.io/limelight/03-uniform/)
 
-Uniforms are values that can be ready in both shader and fragment programs. They can vary
+Uniforms are values that can be used in both shader and fragment programs. They can vary
 between `render` calls, but for a given render call each uniform has a constant value
 across all vertices and fragments.
 
