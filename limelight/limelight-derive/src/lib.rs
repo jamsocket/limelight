@@ -5,7 +5,7 @@ use quote::quote;
 use syn::ItemStruct;
 
 #[proc_macro_attribute]
-pub fn vertex_attribute(
+pub fn attribute(
     _attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
@@ -13,14 +13,14 @@ pub fn vertex_attribute(
 
     let r = quote! {
         #[repr(C)]
-        #[derive(Clone, Copy, limelight::VertexAttribute, limelight::bytemuck::Pod, limelight::bytemuck::Zeroable)]
+        #[derive(Clone, Copy, limelight::Attribute, limelight::bytemuck::Pod, limelight::bytemuck::Zeroable)]
         #item
     };
 
     r.into()
 }
 
-#[proc_macro_derive(VertexAttribute)]
+#[proc_macro_derive(Attribute)]
 pub fn vertex_attribute_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     impl_vertex_attribute_derive(input.into()).into()
 }
@@ -30,7 +30,7 @@ fn bind(field: &syn::Field) -> TokenStream {
     let kind = &field.ty;
 
     quote! {
-        limelight::VertexAttributeBinding {
+        limelight::AttributeBinding {
             variable_name: (#name).to_string(),
             kind: <#kind as limelight::types::AsSizedDataType>::as_sized_data_type(),
         }
@@ -48,8 +48,8 @@ fn impl_vertex_attribute_derive(input: TokenStream) -> TokenStream {
     };
 
     quote! {
-        impl limelight::VertexAttribute for #name {
-            fn describe() -> Vec<limelight::VertexAttributeBinding> {
+        impl limelight::Attribute for #name {
+            fn describe() -> Vec<limelight::AttributeBinding> {
                 vec![
                     #(#bindings),*
                 ]

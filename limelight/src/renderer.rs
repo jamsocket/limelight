@@ -1,10 +1,10 @@
 use std::{collections::HashMap};
 
 use crate::{
-    buffer::BufferLike,
+    buffer::{BufferLike, VertexAttribute, InstanceAttribute},
     program::ProgramLike,
     shadow_gpu::{GpuState, ShadowGpu},
-    vertex_attribute::VertexAttribute,
+    attribute::Attribute,
 };
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
@@ -24,11 +24,11 @@ impl Renderer {
         Renderer { gpu }
     }
 
-    fn render_impl<T: VertexAttribute>(
+    fn render_impl<T: Attribute, I: Attribute>(
         &mut self,
         draw_call: DrawCall,
-        program: &mut impl ProgramLike<T>,
-        buffer: &impl BufferLike<T>,
+        program: &mut impl ProgramLike<T, I>,
+        buffer: &impl BufferLike<T, VertexAttribute>,
     ) -> Result<()> {
         let bound_program = program.get_program(&self.gpu)?;
 
@@ -60,21 +60,22 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn render<T: VertexAttribute>(
+    pub fn render<T: Attribute>(
         &mut self,
-        program: &mut impl ProgramLike<T>,
-        buffer: &impl BufferLike<T>,
+        program: &mut impl ProgramLike<T, ()>,
+        buffer: &impl BufferLike<T, VertexAttribute>,
     ) -> Result<()> {
         self.render_impl(DrawCall::DrawArrays, program, buffer)
     }
 
-    pub fn render_instanced<T: VertexAttribute>(
+    pub fn render_instanced<T: Attribute, I: Attribute>(
         &mut self,
-        program: &mut impl ProgramLike<T>,
-        buffer: &impl BufferLike<T>,
+        program: &mut impl ProgramLike<T, I>,
+        vertex_buffer: &impl BufferLike<T, VertexAttribute>,
+        instance_buffer: &impl BufferLike<I, InstanceAttribute>,
         instances: usize,
     ) -> Result<()> {
-        self.render_impl(DrawCall::DrawArraysInstanced { instances }, program, buffer)
+        self.render_impl(DrawCall::DrawArraysInstanced { instances }, program, vertex_buffer)
     }
 }
 

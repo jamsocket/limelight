@@ -8,10 +8,10 @@ pub mod shadow_gpu;
 pub mod state;
 pub mod types;
 pub mod uniform;
-pub mod vertex_attribute;
+pub mod attribute;
 
 pub use bytemuck;
-pub use limelight_derive::{vertex_attribute, VertexAttribute};
+pub use limelight_derive::{attribute, Attribute};
 
 pub use buffer::{Buffer, DummyBuffer};
 pub use shadow_gpu::BufferUsageHint;
@@ -19,7 +19,7 @@ pub use program::Program;
 pub use renderer::Renderer;
 pub use draw_modes::DrawMode;
 pub use uniform::Uniform;
-pub use vertex_attribute::{VertexAttribute, VertexAttributeBinding};
+pub use attribute::{Attribute, AttributeBinding};
 
 #[allow(unused)]
 macro_rules! console_log {
