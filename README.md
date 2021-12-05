@@ -207,8 +207,8 @@ impl Animation {
             DrawMode::Triangles,
         )
         // Note that we clone uniform, so that we can retain a handle to it.
-        // Uniform::new returns an Rc<Uniform<T>>, so cloning it returns a
-        // reference to the same object.
+        // Cloning a `Uniform` results in a reference-counted pointer to the
+        // same uniform.
         .with_uniform("u_color", uniform.clone());       
         
         Animation {
