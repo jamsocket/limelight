@@ -7,6 +7,8 @@ struct InstanceAttribute {
     index: u8,
 }
 
+
+
 fn render_triangle(gl: WebGl2RenderingContext) {
     // limelight doesn't touch the DOM at all. Use your preferred
     // framework to create a canvas and create a WebGL2 context

@@ -1,4 +1,4 @@
-use limelight::{vertex_attribute, Program};
+use limelight::{attribute, Program};
 
 // Color information can be:
 // - Global color (from uniform)

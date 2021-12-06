@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use limelight::{
-    vertex_attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer,
+    attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer,
 };
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, KeyboardEvent, WebGl2RenderingContext};

@@ -1,4 +1,4 @@
-use limelight::{vertex_attribute, Buffer, DrawMode, Program, Renderer, BufferUsageHint};
+use limelight::{attribute, Buffer, DrawMode, Program, Renderer, BufferUsageHint};
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
