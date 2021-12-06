@@ -64,13 +64,7 @@ impl<T: Attribute> UnboundProgram<T> {
     pub fn bind(self, gpu: &ShadowGpu) -> Result<BoundProgram<T>> {
         let vertex_shader = gpu.compile_vertex_shader(&self.vertex_shader_source)?;
         let fragment_shader = gpu.compile_fragment_shader(&self.fragment_shader_source)?;
-
-        let attribute_locations: Vec<String> = T::describe()
-            .iter()
-            .map(|d| d.variable_name.to_string())
-            .collect();
-
-        let program = gpu.link_program(&fragment_shader, &vertex_shader, &attribute_locations)?;
+        let program = gpu.link_program(&fragment_shader, &vertex_shader)?;
 
         let mut bound_uniforms = Vec::with_capacity(self.uniforms.len());
 

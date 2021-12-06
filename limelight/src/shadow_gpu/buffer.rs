@@ -61,18 +61,6 @@ impl PartialEq for BufferHandle {
     }
 }
 
-// impl GpuBind for Option<BufferHandle> {
-//     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-//         if let Some(buffer) = self {
-//             buffer.bind(gl, false)?;
-//         } else {
-//             gl.bind_buffer(BufferBindPoint::ArrayBuffer as _, None);
-//         }
-
-//         Ok(())
-//     }
-// }
-
 impl BufferHandle {
     fn new_impl(
         usage_hint: BufferUsageHint,

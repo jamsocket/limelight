@@ -1,3 +1,5 @@
+use anyhow::anyhow;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[repr(u32)]
 pub enum DataType {
@@ -9,6 +11,24 @@ pub enum DataType {
     UnsignedInt = 0x1405,
     Float = 0x1406,
 }
+
+impl TryFrom<u32> for DataType {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        match value {
+            0x1400 => Ok(DataType::Byte),
+            0x1401 => Ok(DataType::UnsignedByte),
+            0x1402 => Ok(DataType::Short),
+            0x1403 => Ok(DataType::UnsignedShort),
+            0x1404 => Ok(DataType::Int),
+            0x1405 => Ok(DataType::UnsignedInt),
+            0x1406 => Ok(DataType::Float),
+            _ => Err(anyhow!("Invalid DataType.")),
+        }
+    }
+}
+
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SizedDataType {

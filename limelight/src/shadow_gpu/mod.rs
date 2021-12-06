@@ -1,17 +1,18 @@
 pub use self::buffer::BufferHandle;
 pub use self::types::BufferUsageHint;
-use crate::{types::SizedDataType, DrawMode};
+use crate::{
+    types::{DataType, SizedDataType},
+    DrawMode,
+};
 use anyhow::{anyhow, Result};
 use std::{borrow::Borrow, collections::HashMap, rc::Rc};
 pub use uniforms::{UniformHandle, UniformValue, UniformValueType};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
-pub use vao::VaoHandle;
 
 mod buffer;
 #[allow(unused)]
 mod types;
 mod uniforms;
-mod vao;
 
 trait GpuBind {
     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
@@ -21,11 +22,22 @@ pub struct FragmentShader(WebGlShader);
 pub struct VertexShader(WebGlShader);
 
 #[derive(Clone)]
-pub struct ProgramHandle(Rc<WebGlProgram>);
+struct AttributeInfo {
+    location: i32,
+    size: SizedDataType,
+}
+
+#[derive(Clone)]
+pub struct ProgramHandle {
+    program: Rc<WebGlProgram>,
+
+    /// A map from attribute name to attribute location in the program.
+    attributes: HashMap<String, AttributeInfo>,
+}
 
 impl GpuBind for Option<ProgramHandle> {
     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-        if let Some(ProgramHandle(program)) = &self {
+        if let Some(ProgramHandle { program, .. }) = &self {
             gl.use_program(Some(program.borrow()));
         } else {
             gl.use_program(None);
@@ -37,14 +49,24 @@ impl GpuBind for Option<ProgramHandle> {
 
 impl PartialEq for ProgramHandle {
     fn eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+        Rc::ptr_eq(&self.program, &other.program)
     }
+}
+
+pub struct BufferBinding {
+    pub name: String,
+    pub kind: SizedDataType,
+    pub normalized: bool,
+    pub stride: usize,
+    pub offset: usize,
+    pub divisor: usize,
+    pub buffer: BufferHandle,
 }
 
 #[derive(Default)]
 pub struct GpuState {
     pub program: Option<ProgramHandle>,
-    pub vao: Option<VaoHandle>,
+    pub buffers: Vec<BufferBinding>,
     pub uniforms: HashMap<UniformHandle, UniformValue>,
 }
 
@@ -82,14 +104,15 @@ impl ShadowGpu {
         instance_count: i32,
     ) -> Result<()> {
         self.set_state(state)?;
-        self.gl.draw_arrays_instanced(mode as _, first, count, instance_count);
+        self.gl
+            .draw_arrays_instanced(mode as _, first, count, instance_count);
         Ok(())
     }
 
     pub fn get_uniform_handle(&self, program: &ProgramHandle, name: &str) -> Result<UniformHandle> {
         let location = self
             .gl
-            .get_uniform_location(&program.0, name)
+            .get_uniform_location(&program.program, name)
             .ok_or_else(|| anyhow!("Uniform {} not found.", name))?;
 
         Ok(UniformHandle::new(location))
@@ -100,15 +123,6 @@ impl ShadowGpu {
         if self.state.program != new_state.program {
             new_state.program.gpu_bind(&self.gl)?;
             self.state.program = new_state.program.clone();
-        }
-
-        if self.state.vao != new_state.vao {
-            new_state.vao.gpu_bind(&self.gl)?;
-            self.state.vao = new_state.vao.clone();
-        } else {
-            if let Some(vao) = &self.state.vao {
-                vao.soft_bind(&self.gl)?;
-            }
         }
 
         // Uniforms
@@ -126,7 +140,11 @@ impl ShadowGpu {
         Ok(())
     }
 
-    pub fn create_buffer(&mut self, usage_hint: BufferUsageHint, attributes: &[SizedDataType]) -> BufferHandle {
+    pub fn create_buffer(
+        &mut self,
+        usage_hint: BufferUsageHint,
+        attributes: &[SizedDataType],
+    ) -> BufferHandle {
         BufferHandle::new(usage_hint, attributes)
     }
 
@@ -134,7 +152,6 @@ impl ShadowGpu {
         &self,
         frag_shader: &FragmentShader,
         vertex_shader: &VertexShader,
-        attribute_locations: &[String],
     ) -> Result<ProgramHandle> {
         let gl_program = self
             .gl
@@ -143,13 +160,33 @@ impl ShadowGpu {
 
         self.gl.attach_shader(&gl_program, &frag_shader.0);
         self.gl.attach_shader(&gl_program, &vertex_shader.0);
-
-        for (location, attr) in attribute_locations.iter().enumerate() {
-            self.gl
-                .bind_attrib_location(&gl_program, location as _, attr);
-        }
-
         self.gl.link_program(&gl_program);
+
+        let active_attributes = self
+            .gl
+            .get_program_parameter(&gl_program, WebGl2RenderingContext::ACTIVE_ATTRIBUTES)
+            .as_f64()
+            .expect("ACTIVE_ATTRIBUTES should be numeric.") as u32;
+        let mut attributes = HashMap::new();
+        for i in 0..active_attributes {
+            let attr_info = self
+                .gl
+                .get_active_attrib(&gl_program, i)
+                .expect("Expected attribute info.");
+            let attribute_name = attr_info.name();
+            let attribute_type = attr_info.type_();
+            let attribute_size = attr_info.size();
+            let location = self.gl.get_attrib_location(&gl_program, &attribute_name);
+
+            crate::console_log!("attribute {}: {:?} -> {:?}", i, attribute_name, location);
+            attributes.insert(
+                attribute_name,
+                AttributeInfo {
+                    location,
+                    size: SizedDataType::new(DataType::try_from(attribute_type)?, attribute_size),
+                },
+            );
+        }
 
         if !self
             .gl
@@ -162,7 +199,10 @@ impl ShadowGpu {
             }
         }
 
-        Ok(ProgramHandle(Rc::new(gl_program)))
+        Ok(ProgramHandle {
+            program: Rc::new(gl_program),
+            attributes,
+        })
     }
 
     fn compile_shader(&self, shader_type: ShaderType, source: &str) -> Result<WebGlShader> {

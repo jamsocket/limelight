@@ -3,7 +3,7 @@ use std::{collections::HashMap};
 use crate::{
     buffer::{BufferLike, VertexAttribute, InstanceAttribute},
     program::ProgramLike,
-    shadow_gpu::{GpuState, ShadowGpu, VaoHandle},
+    shadow_gpu::{GpuState, ShadowGpu},
     attribute::Attribute,
 };
 use anyhow::Result;
@@ -18,10 +18,6 @@ enum DrawCall {
     DrawArraysInstanced { instances: usize },
 }
 
-trait VaoLike<T: Attribute, I: Attribute> {
-    fn get_vao(&self) -> VaoHandle;
-}
-
 impl Renderer {
     pub fn new(gl: WebGl2RenderingContext) -> Self {
         let gpu = ShadowGpu::new(gl);
@@ -32,7 +28,6 @@ impl Renderer {
         &mut self,
         draw_call: DrawCall,
         program: &mut impl ProgramLike<T, I>,
-        vao: &mut impl VaoLike<T, I>,
     ) -> Result<()> {
         let bound_program = program.get_program(&self.gpu)?;
 
@@ -43,7 +38,7 @@ impl Renderer {
 
         let state: GpuState = GpuState {
             program: Some(bound_program.handle()),
-            vao: Some(vao.get_vao()),
+            buffers: vec![],
             uniforms,
         };
 
@@ -64,14 +59,14 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn render<T: Attribute>(
-        &mut self,
-        program: &mut impl ProgramLike<T, ()>,
-        vao: &impl VaoLike<T, ()>,
-    ) -> Result<()> {
-        // self.render_impl(DrawCall::DrawArrays, program, buffer)
-        Ok(())
-    }
+    // pub fn render<T: Attribute>(
+    //     &mut self,
+    //     program: &mut impl ProgramLike<T, ()>,
+    //     vao: &impl VaoLike<T, ()>,
+    // ) -> Result<()> {
+    //     // self.render_impl(DrawCall::DrawArrays, program, buffer)
+    //     Ok(())
+    // }
 
     pub fn render_instanced<T: Attribute, I: Attribute>(
         &mut self,
