@@ -5,12 +5,9 @@ use crate::{
 use anyhow::{anyhow, Result};
 use bytemuck::Pod;
 use std::{cell::RefCell, rc::Rc};
-use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
-
-use super::GpuBind;
+use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
 struct BufferGlObjects {
-    vao: WebGlVertexArrayObject,
     buffer: WebGlBuffer,
     capacity: usize,
 }
@@ -64,17 +61,17 @@ impl PartialEq for BufferHandle {
     }
 }
 
-impl GpuBind for Option<BufferHandle> {
-    fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-        if let Some(buffer) = self {
-            buffer.bind(gl, false)?;
-        } else {
-            gl.bind_buffer(BufferBindPoint::ArrayBuffer as _, None);
-        }
+// impl GpuBind for Option<BufferHandle> {
+//     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
+//         if let Some(buffer) = self {
+//             buffer.bind(gl, false)?;
+//         } else {
+//             gl.bind_buffer(BufferBindPoint::ArrayBuffer as _, None);
+//         }
 
-        Ok(())
-    }
-}
+//         Ok(())
+//     }
+// }
 
 impl BufferHandle {
     fn new_impl(
@@ -132,7 +129,6 @@ impl BufferHandle {
             .ok_or_else(|| anyhow!("Couldn't create buffer."))?;
 
         gl.bind_buffer(BufferBindPoint::ArrayBuffer as _, Some(&buffer));
-
         gl.buffer_data_with_u8_array(BufferBindPoint::ArrayBuffer as _, &data, usage_hint as _);
 
         let mut offset: i32 = 0;
@@ -158,16 +154,11 @@ impl BufferHandle {
 
         Ok(BufferGlObjects {
             buffer,
-            vao,
             capacity: data.len(),
         })
     }
 
-    pub fn sync_data(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-        self.bind(gl, true)
-    }
-
-    pub fn bind(&self, gl: &WebGl2RenderingContext, already_bound: bool) -> Result<()> {
+    pub fn bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
         let inner = &self.0;
 
         // The buffer handle has local data, so we need to write it.
@@ -177,10 +168,6 @@ impl BufferHandle {
         if let Some(gl_objects) = &mut *gl_objects {
             if data.dirty {
                 if gl_objects.capacity > data.data.byte_len() {
-                    if !already_bound {
-                        gl.bind_vertex_array(Some(&gl_objects.vao));
-                    }
-
                     gl.buffer_sub_data_with_i32_and_u8_array(
                         BufferBindPoint::ArrayBuffer as _,
                         0,
@@ -189,7 +176,6 @@ impl BufferHandle {
                 } else {
                     // The current buffer isn't big enough, need to discard it and create a new one.
                     gl.delete_buffer(Some(&gl_objects.buffer));
-                    gl.delete_vertex_array(Some(&gl_objects.vao));
 
                     *gl_objects = Self::create(
                         gl,
@@ -200,9 +186,7 @@ impl BufferHandle {
                     )?;
                 }
             } else {
-                if !already_bound {
-                    gl.bind_vertex_array(Some(&gl_objects.vao));
-                }
+
             }
         } else {
             // We have not created this buffer before.

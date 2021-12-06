@@ -5,11 +5,13 @@ use anyhow::{anyhow, Result};
 use std::{borrow::Borrow, collections::HashMap, rc::Rc};
 pub use uniforms::{UniformHandle, UniformValue, UniformValueType};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
+pub use vao::VaoHandle;
 
 mod buffer;
 #[allow(unused)]
 mod types;
 mod uniforms;
+mod vao;
 
 trait GpuBind {
     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
@@ -42,7 +44,7 @@ impl PartialEq for ProgramHandle {
 #[derive(Default)]
 pub struct GpuState {
     pub program: Option<ProgramHandle>,
-    pub buffer: Option<BufferHandle>,
+    pub vao: Option<VaoHandle>,
     pub uniforms: HashMap<UniformHandle, UniformValue>,
 }
 
@@ -100,11 +102,13 @@ impl ShadowGpu {
             self.state.program = new_state.program.clone();
         }
 
-        if self.state.buffer != new_state.buffer {
-            new_state.buffer.gpu_bind(&self.gl)?;
-            self.state.buffer = new_state.buffer.clone();
-        } else if let Some(buffer) = &new_state.buffer {
-            buffer.sync_data(&self.gl)?;
+        if self.state.vao != new_state.vao {
+            new_state.vao.gpu_bind(&self.gl)?;
+            self.state.vao = new_state.vao.clone();
+        } else {
+            if let Some(vao) = &self.state.vao {
+                vao.soft_bind(&self.gl)?;
+            }
         }
 
         // Uniforms

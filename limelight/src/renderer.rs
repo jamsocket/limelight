@@ -3,7 +3,7 @@ use std::{collections::HashMap};
 use crate::{
     buffer::{BufferLike, VertexAttribute, InstanceAttribute},
     program::ProgramLike,
-    shadow_gpu::{GpuState, ShadowGpu},
+    shadow_gpu::{GpuState, ShadowGpu, VaoHandle},
     attribute::Attribute,
 };
 use anyhow::Result;
@@ -18,6 +18,10 @@ enum DrawCall {
     DrawArraysInstanced { instances: usize },
 }
 
+trait VaoLike<T: Attribute, I: Attribute> {
+    fn get_vao(&self) -> VaoHandle;
+}
+
 impl Renderer {
     pub fn new(gl: WebGl2RenderingContext) -> Self {
         let gpu = ShadowGpu::new(gl);
@@ -28,7 +32,7 @@ impl Renderer {
         &mut self,
         draw_call: DrawCall,
         program: &mut impl ProgramLike<T, I>,
-        buffer: &impl BufferLike<T, VertexAttribute>,
+        vao: &mut impl VaoLike<T, I>,
     ) -> Result<()> {
         let bound_program = program.get_program(&self.gpu)?;
 
@@ -39,23 +43,23 @@ impl Renderer {
 
         let state: GpuState = GpuState {
             program: Some(bound_program.handle()),
-            buffer: buffer.get_buffer(),
+            vao: Some(vao.get_vao()),
             uniforms,
         };
 
-        match draw_call {
-            DrawCall::DrawArrays => {
-                self.gpu
-                    .draw_arrays(&state, program.draw_mode(), 0, buffer.len() as _)?
-            }
-            DrawCall::DrawArraysInstanced { instances } => self.gpu.draw_arrays_instanced(
-                &state,
-                program.draw_mode(),
-                0,
-                buffer.len() as _,
-                instances as _,
-            )?,
-        }
+        // match draw_call {
+        //     DrawCall::DrawArrays => {
+        //         self.gpu
+        //             .draw_arrays(&state, program.draw_mode(), 0, buffer.len() as _)?
+        //     }
+        //     DrawCall::DrawArraysInstanced { instances } => self.gpu.draw_arrays_instanced(
+        //         &state,
+        //         program.draw_mode(),
+        //         0,
+        //         buffer.len() as _,
+        //         instances as _,
+        //     )?,
+        // }
 
         Ok(())
     }
@@ -63,9 +67,10 @@ impl Renderer {
     pub fn render<T: Attribute>(
         &mut self,
         program: &mut impl ProgramLike<T, ()>,
-        buffer: &impl BufferLike<T, VertexAttribute>,
+        vao: &impl VaoLike<T, ()>,
     ) -> Result<()> {
-        self.render_impl(DrawCall::DrawArrays, program, buffer)
+        // self.render_impl(DrawCall::DrawArrays, program, buffer)
+        Ok(())
     }
 
     pub fn render_instanced<T: Attribute, I: Attribute>(
@@ -75,7 +80,8 @@ impl Renderer {
         instance_buffer: &impl BufferLike<I, InstanceAttribute>,
         instances: usize,
     ) -> Result<()> {
-        self.render_impl(DrawCall::DrawArraysInstanced { instances }, program, vertex_buffer)
+        //self.render_impl(DrawCall::DrawArraysInstanced { instances }, program, vertex_buffer)
+        Ok(())
     }
 }
 
