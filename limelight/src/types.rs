@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 #[repr(u32)]
 pub enum DataType {
     Byte = 0x1400,
@@ -29,8 +29,7 @@ impl TryFrom<u32> for DataType {
     }
 }
 
-
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Hash, Eq)]
 pub struct SizedDataType {
     data_type: DataType,
     size: i32,

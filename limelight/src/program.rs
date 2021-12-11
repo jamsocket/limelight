@@ -5,9 +5,9 @@ use std::{
 };
 
 use crate::{
-    shadow_gpu::{ProgramHandle, ShadowGpu, UniformHandle, UniformValueType},
+    shadow_gpu::{AttributeInfo, ProgramHandle, ShadowGpu, UniformHandle, UniformValueType},
     uniform::GenericUniform,
-    DrawMode, Uniform, Attribute,
+    Attribute, DrawMode, Uniform,
 };
 
 pub trait ProgramLike<T: Attribute, I: Attribute> {
@@ -26,6 +26,10 @@ pub struct BoundProgram<T: Attribute> {
 impl<T: Attribute> BoundProgram<T> {
     pub fn handle(&self) -> ProgramHandle {
         self.handle.clone()
+    }
+
+    pub fn attributes(&self) -> &HashMap<String, AttributeInfo> {
+        &self.handle.attributes
     }
 }
 
@@ -138,10 +142,10 @@ impl<T: Attribute, I: Attribute> ProgramLike<T, I> for Program<T> {
 
                 let result = dummy_program.bind(gpu)?;
                 *self = Program::Bound(result);
-                
+
                 match self {
                     Program::Bound(result) => Ok(result),
-                    _ => panic!()
+                    _ => panic!(),
                 }
             }
         }

@@ -1,18 +1,23 @@
 pub use self::buffer::BufferHandle;
+pub use self::state::BufferBinding;
 pub use self::types::BufferUsageHint;
-use crate::{
-    types::{DataType, SizedDataType},
-    DrawMode,
-};
+use self::vao::VaoHandle;
+pub use self::{program::ProgramHandle, state::GpuState};
+use crate::shadow_gpu::types::UniformType;
+use crate::{types::SizedDataType, DrawMode};
 use anyhow::{anyhow, Result};
-use std::{borrow::Borrow, collections::HashMap, rc::Rc};
+use std::collections::BTreeMap;
+use std::{collections::HashMap, rc::Rc};
 pub use uniforms::{UniformHandle, UniformValue, UniformValueType};
-use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
+use web_sys::{WebGl2RenderingContext, WebGlShader};
 
 mod buffer;
+mod program;
+mod state;
 #[allow(unused)]
 mod types;
 mod uniforms;
+mod vao;
 
 trait GpuBind {
     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
@@ -21,58 +26,16 @@ trait GpuBind {
 pub struct FragmentShader(WebGlShader);
 pub struct VertexShader(WebGlShader);
 
-#[derive(Clone)]
-struct AttributeInfo {
-    location: i32,
-    size: SizedDataType,
-}
-
-#[derive(Clone)]
-pub struct ProgramHandle {
-    program: Rc<WebGlProgram>,
-
-    /// A map from attribute name to attribute location in the program.
-    attributes: HashMap<String, AttributeInfo>,
-}
-
-impl GpuBind for Option<ProgramHandle> {
-    fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-        if let Some(ProgramHandle { program, .. }) = &self {
-            gl.use_program(Some(program.borrow()));
-        } else {
-            gl.use_program(None);
-        }
-
-        Ok(())
-    }
-}
-
-impl PartialEq for ProgramHandle {
-    fn eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.program, &other.program)
-    }
-}
-
-pub struct BufferBinding {
-    pub name: String,
+#[derive(Clone, Debug)]
+pub struct AttributeInfo {
+    pub location: usize,
     pub kind: SizedDataType,
-    pub normalized: bool,
-    pub stride: usize,
-    pub offset: usize,
-    pub divisor: usize,
-    pub buffer: BufferHandle,
-}
-
-#[derive(Default)]
-pub struct GpuState {
-    pub program: Option<ProgramHandle>,
-    pub buffers: Vec<BufferBinding>,
-    pub uniforms: HashMap<UniformHandle, UniformValue>,
 }
 
 pub struct ShadowGpu {
     gl: WebGl2RenderingContext,
     state: GpuState,
+    vaos: HashMap<BTreeMap<BufferHandle, Vec<BufferBinding>>, VaoHandle>,
 }
 
 impl ShadowGpu {
@@ -80,6 +43,7 @@ impl ShadowGpu {
         ShadowGpu {
             gl,
             state: GpuState::default(),
+            vaos: HashMap::default(),
         }
     }
 
@@ -125,6 +89,20 @@ impl ShadowGpu {
             self.state.program = new_state.program.clone();
         }
 
+        let vao = if let Some(vao) = self.vaos.get_mut(&new_state.buffers) {
+            vao
+        } else {
+            // Create VAO with bindings.
+            let vao = VaoHandle {
+                buffers: new_state.buffers.clone(),
+                vao: None,
+            };
+            self.vaos.insert(new_state.buffers.clone(), vao);
+            self.vaos.get_mut(&new_state.buffers).unwrap()
+        };
+
+        vao.gpu_bind(&self.gl)?;
+
         // Uniforms
         for (location, value) in &new_state.uniforms {
             if let Some(v) = self.state.uniforms.get(location) {
@@ -140,12 +118,8 @@ impl ShadowGpu {
         Ok(())
     }
 
-    pub fn create_buffer(
-        &mut self,
-        usage_hint: BufferUsageHint,
-        attributes: &[SizedDataType],
-    ) -> BufferHandle {
-        BufferHandle::new(usage_hint, attributes)
+    pub fn create_buffer(&mut self, usage_hint: BufferUsageHint) -> BufferHandle {
+        BufferHandle::new(usage_hint)
     }
 
     pub fn link_program(
@@ -176,14 +150,19 @@ impl ShadowGpu {
             let attribute_name = attr_info.name();
             let attribute_type = attr_info.type_();
             let attribute_size = attr_info.size();
-            let location = self.gl.get_attrib_location(&gl_program, &attribute_name);
+            if attribute_size > 1 {
+                panic!("Attribute size for {} is {}. Attribute sizes greater than 1 are not yet implemented.", attribute_name, attribute_size);
+            }
+            let location = self.gl.get_attrib_location(&gl_program, &attribute_name) as _;
 
-            crate::console_log!("attribute {}: {:?} -> {:?}", i, attribute_name, location);
+            let kind = UniformType::try_from(attribute_type)?;
+            let sized_kind = kind.as_sized_type();
+
             attributes.insert(
                 attribute_name,
                 AttributeInfo {
                     location,
-                    size: SizedDataType::new(DataType::try_from(attribute_type)?, attribute_size),
+                    kind: sized_kind,
                 },
             );
         }

@@ -1,8 +1,6 @@
 use std::ops::Deref;
 
-use limelight::{
-    attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer,
-};
+use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, KeyboardEvent, WebGl2RenderingContext};
 use yew::services::keyboard::KeyListenerHandle;
@@ -10,7 +8,7 @@ use yew::services::render::RenderTask;
 use yew::services::{KeyboardService, RenderService};
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 
-#[vertex_attribute]
+#[attribute]
 struct VertexDescription {
     position: [f32; 2],
 }
@@ -178,7 +176,7 @@ impl Component for Model {
         let key_up_handle =
             KeyboardService::register_key_up(&yew::utils::window(), link.callback(Msg::KeyUp));
 
-        let program =  Program::new(
+        let program = Program::new(
             include_str!("../shaders/shader.frag"),
             include_str!("../shaders/shader.vert"),
             DrawMode::Triangles,
@@ -223,9 +221,7 @@ impl Component for Model {
                 self.buffer.set_data(self.state.into_quads());
 
                 if let Some(renderer) = self.renderer.as_mut() {
-                    renderer
-                        .render(&mut self.program, &self.buffer)
-                        .unwrap();
+                    renderer.render(&mut self.program, &self.buffer).unwrap();
                 }
 
                 self.render_handle = Some(RenderService::request_animation_frame(

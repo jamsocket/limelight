@@ -57,7 +57,7 @@ impl Scene {
     }
 }
 
-#[vertex_attribute]
+#[attribute]
 struct VertexDescription {
     position: [f32; 2],
 }

@@ -1,36 +1,43 @@
-use limelight::{DrawMode, DummyBuffer, Program, Renderer, vertex_attribute};
+use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
-#[vertex_attribute]
+#[attribute]
 struct InstanceAttribute {
-    index: u8,
+    instance_index: i32,
 }
 
-
+#[attribute]
+struct VertexAttribute {
+    vertex_index: i32,
+}
 
 fn render_triangle(gl: WebGl2RenderingContext) {
-    // limelight doesn't touch the DOM at all. Use your preferred
-    // framework to create a canvas and create a WebGL2 context
-    // from it.
-
-    // Create a shader program by passing in GLSL code as strings for
-    // the fragment and vertex shaders.
     let mut program = Program::new(
         include_str!("../shaders/shader.frag"),
         include_str!("../shaders/shader.vert"),
         DrawMode::Points,
     );
 
-    // Create a renderer. The renderer becomes the owner of the
-    // WebGl2RenderingContext, to ensure that its internal representation
-    // of the GPU state is always accureate.
     let mut renderer = Renderer::new(gl);
 
-    // Run the program, rendering the results to the screen. We are
-    // not passing any vertex attribute data, so we use a `DummyBuffer`
-    // which renders three vertices: one for each corner of a triangle.
-    renderer.render_instanced(&mut program, &DummyBuffer::new(10), 1).unwrap();
+    let instances = Buffer::new(
+        (0..10)
+            .map(|instance_index| InstanceAttribute { instance_index })
+            .collect(),
+        BufferUsageHint::StaticDraw,
+    );
+
+    let vertices = Buffer::new(
+        (0..10)
+            .map(|vertex_index| VertexAttribute { vertex_index })
+            .collect(),
+        BufferUsageHint::StaticDraw,
+    );
+
+    renderer
+        .render_instanced(&mut program, &vertices, &instances)
+        .unwrap();
 }
 
 fn get_gl() -> WebGl2RenderingContext {

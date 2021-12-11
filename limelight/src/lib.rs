@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 
+mod attribute;
 pub mod buffer;
 pub mod draw_modes;
 pub mod program;
@@ -8,18 +9,17 @@ pub mod shadow_gpu;
 pub mod state;
 pub mod types;
 pub mod uniform;
-pub mod attribute;
 
 pub use bytemuck;
 pub use limelight_derive::{attribute, Attribute};
 
+pub use attribute::{Attribute, AttributeBinding};
 pub use buffer::{Buffer, DummyBuffer};
-pub use shadow_gpu::BufferUsageHint;
+pub use draw_modes::DrawMode;
 pub use program::Program;
 pub use renderer::Renderer;
-pub use draw_modes::DrawMode;
+pub use shadow_gpu::BufferUsageHint;
 pub use uniform::Uniform;
-pub use attribute::{Attribute, AttributeBinding};
 
 #[allow(unused)]
 macro_rules! console_log {

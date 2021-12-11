@@ -1,49 +1,28 @@
-use crate::{shadow_gpu::{BufferHandle, BufferUsageHint}, types::SizedDataType, Attribute};
+use crate::{
+    shadow_gpu::{BufferHandle, BufferUsageHint},
+    Attribute,
+};
 use std::marker::PhantomData;
 
-pub trait AttribDivisor {
-    fn attrib_divisor(&self) -> Option<usize>;
-}
-
-pub struct VertexAttribute;
-
-impl AttribDivisor for VertexAttribute {
-    fn attrib_divisor(&self) -> Option<usize> {
-        None
-    }
-}
-
-pub struct InstanceAttribute;
-
-impl AttribDivisor for InstanceAttribute {
-    fn attrib_divisor(&self) -> Option<usize> {
-        Some(1)
-    }
-}
-
-pub trait BufferLike<T: Attribute, A: AttribDivisor> {
+pub trait BufferLike<T: Attribute> {
     fn get_buffer(&self) -> Option<BufferHandle>;
 
     fn len(&self) -> usize;
 }
 
-pub struct Buffer<T: Attribute, A: AttribDivisor> {
+pub struct Buffer<T: Attribute> {
     handle: BufferHandle,
     _ph: PhantomData<T>,
-    _pha: PhantomData<A>,
 }
 
-impl<T: Attribute, A: AttribDivisor> Buffer<T, A> {
+impl<T: Attribute> Buffer<T> {
     pub fn new(data: Vec<T>, usage_hint: BufferUsageHint) -> Self {
-        let attributes: Vec<SizedDataType> = T::describe().into_iter().map(|d| d.kind).collect();
-        let handle = BufferHandle::new(usage_hint, &attributes);
-
+        let handle = BufferHandle::new(usage_hint);
         handle.set_data(data);
 
         Buffer {
             handle,
             _ph: PhantomData::default(),
-            _pha: PhantomData::default(),
         }
     }
 
@@ -52,7 +31,7 @@ impl<T: Attribute, A: AttribDivisor> Buffer<T, A> {
     }
 }
 
-impl<T: Attribute, A: AttribDivisor> BufferLike<T, A> for Buffer<T, A> {
+impl<T: Attribute> BufferLike<T> for Buffer<T> {
     fn get_buffer(&self) -> Option<BufferHandle> {
         Some(self.handle.clone())
     }
@@ -62,21 +41,17 @@ impl<T: Attribute, A: AttribDivisor> BufferLike<T, A> for Buffer<T, A> {
     }
 }
 
-pub struct DummyBuffer<A: AttribDivisor> {
+pub struct DummyBuffer {
     size: usize,
-    _ph: PhantomData<A>,
 }
 
-impl<A: AttribDivisor> DummyBuffer<A> {
+impl DummyBuffer {
     pub fn new(size: usize) -> Self {
-        DummyBuffer {
-            size,
-            _ph: PhantomData::default(),
-        }
+        DummyBuffer { size }
     }
 }
 
-impl<A: AttribDivisor> BufferLike<(), A> for DummyBuffer<A> {
+impl BufferLike<()> for DummyBuffer {
     fn len(&self) -> usize {
         self.size
     }
