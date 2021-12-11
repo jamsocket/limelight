@@ -1,4 +1,4 @@
-use limelight::types::{DataType, SizedDataType};
+use limelight::webgl::types::{DataType, SizedDataType};
 use limelight::{attribute, Attribute, AttributeBinding};
 
 #[attribute]

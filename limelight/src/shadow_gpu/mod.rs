@@ -1,10 +1,10 @@
 pub use self::buffer::BufferHandle;
 pub use self::state::BufferBinding;
-pub use self::types::BufferUsageHint;
 use self::vao::VaoHandle;
 pub use self::{program::ProgramHandle, state::GpuState};
-use crate::shadow_gpu::types::UniformType;
-use crate::{types::SizedDataType, DrawMode};
+use crate::webgl::buffer::BufferUsageHint;
+use crate::webgl::types::GlSizedDataType;
+use crate::{webgl::types::SizedDataType, DrawMode};
 use anyhow::{anyhow, Result};
 use std::collections::BTreeMap;
 use std::{collections::HashMap, rc::Rc};
@@ -14,8 +14,6 @@ use web_sys::{WebGl2RenderingContext, WebGlShader};
 mod buffer;
 mod program;
 mod state;
-#[allow(unused)]
-mod types;
 mod uniforms;
 mod vao;
 
@@ -155,7 +153,7 @@ impl ShadowGpu {
             }
             let location = self.gl.get_attrib_location(&gl_program, &attribute_name) as _;
 
-            let kind = UniformType::try_from(attribute_type)?;
+            let kind = GlSizedDataType::try_from(attribute_type)?;
             let sized_kind = kind.as_sized_type();
 
             attributes.insert(

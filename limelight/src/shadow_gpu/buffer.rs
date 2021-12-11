@@ -1,4 +1,4 @@
-use crate::shadow_gpu::types::{BufferBindPoint, BufferUsageHint};
+use crate::webgl::buffer::{BufferBindPoint, BufferUsageHint};
 use anyhow::{anyhow, Result};
 use bytemuck::Pod;
 use std::{cell::RefCell, hash::Hash, rc::Rc};

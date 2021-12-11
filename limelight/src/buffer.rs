@@ -1,6 +1,5 @@
 use crate::{
-    shadow_gpu::{BufferHandle, BufferUsageHint},
-    Attribute,
+    Attribute, shadow_gpu::BufferHandle, webgl::buffer::BufferUsageHint,
 };
 use std::marker::PhantomData;
 

@@ -32,7 +32,7 @@ fn bind(field: &syn::Field) -> TokenStream {
     quote! {
         limelight::AttributeBinding {
             variable_name: (#name).to_string(),
-            kind: <#kind as limelight::types::AsSizedDataType>::as_sized_data_type(),
+            kind: <#kind as limelight::AsSizedDataType>::as_sized_data_type(),
         }
     }
 }
