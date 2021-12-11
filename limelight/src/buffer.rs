@@ -1,22 +1,23 @@
-use crate::{shadow_gpu::{BufferHandle, BufferUsageHint}, types::SizedDataType, VertexAttribute};
+use crate::{
+    shadow_gpu::{BufferHandle, BufferUsageHint},
+    Attribute,
+};
 use std::marker::PhantomData;
 
-pub trait BufferLike<T: VertexAttribute> {
+pub trait BufferLike<T: Attribute> {
     fn get_buffer(&self) -> Option<BufferHandle>;
 
     fn len(&self) -> usize;
 }
 
-pub struct Buffer<T: VertexAttribute> {
+pub struct Buffer<T: Attribute> {
     handle: BufferHandle,
     _ph: PhantomData<T>,
 }
 
-impl<T: VertexAttribute> Buffer<T> {
+impl<T: Attribute> Buffer<T> {
     pub fn new(data: Vec<T>, usage_hint: BufferUsageHint) -> Self {
-        let attributes: Vec<SizedDataType> = T::describe().into_iter().map(|d| d.kind).collect();
-        let handle = BufferHandle::new(usage_hint, &attributes);
-
+        let handle = BufferHandle::new(usage_hint);
         handle.set_data(data);
 
         Buffer {
@@ -30,7 +31,7 @@ impl<T: VertexAttribute> Buffer<T> {
     }
 }
 
-impl<T: VertexAttribute> BufferLike<T> for Buffer<T> {
+impl<T: Attribute> BufferLike<T> for Buffer<T> {
     fn get_buffer(&self) -> Option<BufferHandle> {
         Some(self.handle.clone())
     }
@@ -40,17 +41,19 @@ impl<T: VertexAttribute> BufferLike<T> for Buffer<T> {
     }
 }
 
-pub struct DummyBuffer(usize);
+pub struct DummyBuffer {
+    size: usize,
+}
 
 impl DummyBuffer {
     pub fn new(size: usize) -> Self {
-        DummyBuffer(size)
+        DummyBuffer { size }
     }
 }
 
 impl BufferLike<()> for DummyBuffer {
     fn len(&self) -> usize {
-        self.0
+        self.size
     }
 
     fn get_buffer(&self) -> Option<BufferHandle> {

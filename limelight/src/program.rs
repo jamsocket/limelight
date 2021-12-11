@@ -5,31 +5,35 @@ use std::{
 };
 
 use crate::{
-    shadow_gpu::{ProgramHandle, ShadowGpu, UniformHandle, UniformValueType},
+    shadow_gpu::{AttributeInfo, ProgramHandle, ShadowGpu, UniformHandle, UniformValueType},
     uniform::GenericUniform,
-    DrawMode, Uniform, VertexAttribute,
+    Attribute, DrawMode, Uniform,
 };
 
-pub trait ProgramLike<T: VertexAttribute> {
+pub trait ProgramLike<T: Attribute, I: Attribute> {
     fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T>>;
 
     fn draw_mode(&self) -> DrawMode;
 }
 
-pub struct BoundProgram<T: VertexAttribute> {
+pub struct BoundProgram<T: Attribute> {
     handle: ProgramHandle,
     pub uniforms: Vec<(UniformHandle, Box<dyn GenericUniform>)>,
     draw_mode: DrawMode,
     _ph: PhantomData<T>,
 }
 
-impl<T: VertexAttribute> BoundProgram<T> {
+impl<T: Attribute> BoundProgram<T> {
     pub fn handle(&self) -> ProgramHandle {
         self.handle.clone()
     }
+
+    pub fn attributes(&self) -> &HashMap<String, AttributeInfo> {
+        &self.handle.attributes
+    }
 }
 
-pub struct UnboundProgram<T: VertexAttribute> {
+pub struct UnboundProgram<T: Attribute> {
     fragment_shader_source: String,
     vertex_shader_source: String,
     uniforms: HashMap<String, Box<dyn GenericUniform>>,
@@ -37,7 +41,7 @@ pub struct UnboundProgram<T: VertexAttribute> {
     _ph: PhantomData<T>,
 }
 
-impl<T: VertexAttribute> UnboundProgram<T> {
+impl<T: Attribute> UnboundProgram<T> {
     pub fn with_uniform<U: UniformValueType>(
         &mut self,
         name: &str,
@@ -64,13 +68,7 @@ impl<T: VertexAttribute> UnboundProgram<T> {
     pub fn bind(self, gpu: &ShadowGpu) -> Result<BoundProgram<T>> {
         let vertex_shader = gpu.compile_vertex_shader(&self.vertex_shader_source)?;
         let fragment_shader = gpu.compile_fragment_shader(&self.fragment_shader_source)?;
-
-        let attribute_locations: Vec<String> = T::describe()
-            .iter()
-            .map(|d| d.variable_name.to_string())
-            .collect();
-
-        let program = gpu.link_program(&fragment_shader, &vertex_shader, &attribute_locations)?;
+        let program = gpu.link_program(&fragment_shader, &vertex_shader)?;
 
         let mut bound_uniforms = Vec::with_capacity(self.uniforms.len());
 
@@ -88,12 +86,12 @@ impl<T: VertexAttribute> UnboundProgram<T> {
     }
 }
 
-pub enum Program<T: VertexAttribute> {
+pub enum Program<T: Attribute> {
     Unbound(UnboundProgram<T>),
     Bound(BoundProgram<T>),
 }
 
-impl<T: VertexAttribute> Program<T> {
+impl<T: Attribute> Program<T> {
     pub fn new(
         fragment_shader_source: &str,
         vertex_shader_source: &str,
@@ -109,7 +107,7 @@ impl<T: VertexAttribute> Program<T> {
     }
 }
 
-impl<T: VertexAttribute> ProgramLike<T> for BoundProgram<T> {
+impl<T: Attribute, I: Attribute> ProgramLike<T, I> for BoundProgram<T> {
     fn get_program(&mut self, _gpu: &ShadowGpu) -> Result<&BoundProgram<T>> {
         Ok(self)
     }
@@ -119,7 +117,7 @@ impl<T: VertexAttribute> ProgramLike<T> for BoundProgram<T> {
     }
 }
 
-impl<T: VertexAttribute> Program<T> {
+impl<T: Attribute> Program<T> {
     pub fn with_uniform<U: UniformValueType>(mut self, name: &str, uniform: Uniform<U>) -> Self {
         match &mut self {
             Program::Bound(_) => {
@@ -134,7 +132,7 @@ impl<T: VertexAttribute> Program<T> {
     }
 }
 
-impl<T: VertexAttribute> ProgramLike<T> for Program<T> {
+impl<T: Attribute, I: Attribute> ProgramLike<T, I> for Program<T> {
     fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T>> {
         match self {
             Program::Bound(p) => Ok(p),
@@ -144,10 +142,10 @@ impl<T: VertexAttribute> ProgramLike<T> for Program<T> {
 
                 let result = dummy_program.bind(gpu)?;
                 *self = Program::Bound(result);
-                
+
                 match self {
                     Program::Bound(result) => Ok(result),
-                    _ => panic!()
+                    _ => panic!(),
                 }
             }
         }

@@ -1,4 +1,4 @@
-use limelight::{vertex_attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
+use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use limelight_transform::TransformUniform;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, MouseEvent, WebGl2RenderingContext, WheelEvent};
@@ -57,7 +57,7 @@ impl Scene {
     }
 }
 
-#[vertex_attribute]
+#[attribute]
 struct VertexDescription {
     position: [f32; 2],
 }

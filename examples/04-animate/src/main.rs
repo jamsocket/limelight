@@ -1,4 +1,4 @@
-use limelight::{vertex_attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform};
+use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use yew::services::render::RenderTask;
@@ -51,7 +51,7 @@ impl Animation {
     }
 }
 
-#[vertex_attribute]
+#[attribute]
 struct VertexDescription {
     position: [f32; 2],
 }

@@ -1,10 +1,10 @@
-use limelight::{vertex_attribute, Buffer, DrawMode, Program, Renderer, BufferUsageHint};
+use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
 // This attribute macro derives a number of traits, including `VertexAttribute`, which
 // is required for a type to be used in an `AttributeBuffer`.
-#[vertex_attribute]
+#[attribute]
 struct VertexDescription {
     position: [f32; 2], // field names are mapped to variables in the shader.
 }
@@ -23,7 +23,7 @@ fn render_triangles(gl: WebGl2RenderingContext) {
     );
 
     let mut renderer = Renderer::new(gl);
-    
+
     let data = vec![
         // Lower-left triangle.
         VertexDescription::new(-0.1, -0.1),
@@ -35,8 +35,7 @@ fn render_triangles(gl: WebGl2RenderingContext) {
         VertexDescription::new(0.5, 0.5),
     ];
 
-    let buffer: Buffer<VertexDescription> =
-        Buffer::new(data, BufferUsageHint::StaticDraw);
+    let buffer = Buffer::new(data, BufferUsageHint::StaticDraw);
 
     renderer.render(&mut program, &buffer).unwrap();
 }

@@ -1,7 +1,7 @@
 use limelight::types::{DataType, SizedDataType};
-use limelight::{vertex_attribute, VertexAttribute, VertexAttributeBinding};
+use limelight::{attribute, Attribute, AttributeBinding};
 
-#[vertex_attribute]
+#[attribute]
 struct SimpleStruct {
     data: i32,
 }
@@ -9,7 +9,7 @@ struct SimpleStruct {
 #[test]
 fn test_describe_simple_derive() {
     assert_eq!(
-        vec![VertexAttributeBinding {
+        vec![AttributeBinding {
             variable_name: "data".to_string(),
             kind: SizedDataType::new(DataType::Int, 1)
         }],
@@ -17,7 +17,7 @@ fn test_describe_simple_derive() {
     );
 }
 
-#[vertex_attribute]
+#[attribute]
 struct TwoFieldStruct {
     data1: f32,
     data2: u16,
@@ -28,15 +28,15 @@ struct TwoFieldStruct {
 fn test_describe_two_field_derive() {
     assert_eq!(
         vec![
-            VertexAttributeBinding::new("data1", DataType::Float, 1),
-            VertexAttributeBinding::new("data2", DataType::UnsignedShort, 1),
-            VertexAttributeBinding::new("data3", DataType::Short, 1),
+            AttributeBinding::new("data1", DataType::Float, 1),
+            AttributeBinding::new("data2", DataType::UnsignedShort, 1),
+            AttributeBinding::new("data3", DataType::Short, 1),
         ],
         TwoFieldStruct::describe()
     );
 }
 
-#[vertex_attribute]
+#[attribute]
 struct ArrayStruct {
     array: [f32; 4],
 }
@@ -44,12 +44,12 @@ struct ArrayStruct {
 #[test]
 fn test_describe_array_field_derive() {
     assert_eq!(
-        vec![VertexAttributeBinding::new("array", DataType::Float, 4)],
+        vec![AttributeBinding::new("array", DataType::Float, 4)],
         ArrayStruct::describe()
     );
 }
 
-#[vertex_attribute]
+#[attribute]
 struct MultipleArrayStruct {
     a1: [u16; 4],
     b1: [i16; 4],
@@ -62,11 +62,11 @@ struct MultipleArrayStruct {
 fn test_describe_multiple_array_field_derive() {
     assert_eq!(
         vec![
-            VertexAttributeBinding::new("a1", DataType::UnsignedShort, 4),
-            VertexAttributeBinding::new("b1", DataType::Short, 4),
-            VertexAttributeBinding::new("c1", DataType::UnsignedByte, 1),
-            VertexAttributeBinding::new("d1", DataType::Byte, 3),
-            VertexAttributeBinding::new("e1", DataType::UnsignedShort, 2),
+            AttributeBinding::new("a1", DataType::UnsignedShort, 4),
+            AttributeBinding::new("b1", DataType::Short, 4),
+            AttributeBinding::new("c1", DataType::UnsignedByte, 1),
+            AttributeBinding::new("d1", DataType::Byte, 3),
+            AttributeBinding::new("e1", DataType::UnsignedShort, 2),
         ],
         MultipleArrayStruct::describe()
     );

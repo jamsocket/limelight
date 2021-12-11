@@ -1,15 +1,23 @@
 pub use self::buffer::BufferHandle;
+pub use self::state::BufferBinding;
 pub use self::types::BufferUsageHint;
+use self::vao::VaoHandle;
+pub use self::{program::ProgramHandle, state::GpuState};
+use crate::shadow_gpu::types::UniformType;
 use crate::{types::SizedDataType, DrawMode};
 use anyhow::{anyhow, Result};
-use std::{borrow::Borrow, collections::HashMap, rc::Rc};
+use std::collections::BTreeMap;
+use std::{collections::HashMap, rc::Rc};
 pub use uniforms::{UniformHandle, UniformValue, UniformValueType};
-use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
+use web_sys::{WebGl2RenderingContext, WebGlShader};
 
 mod buffer;
+mod program;
+mod state;
 #[allow(unused)]
 mod types;
 mod uniforms;
+mod vao;
 
 trait GpuBind {
     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
@@ -18,37 +26,16 @@ trait GpuBind {
 pub struct FragmentShader(WebGlShader);
 pub struct VertexShader(WebGlShader);
 
-#[derive(Clone)]
-pub struct ProgramHandle(Rc<WebGlProgram>);
-
-impl GpuBind for Option<ProgramHandle> {
-    fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()> {
-        if let Some(ProgramHandle(program)) = &self {
-            gl.use_program(Some(program.borrow()));
-        } else {
-            gl.use_program(None);
-        }
-
-        Ok(())
-    }
-}
-
-impl PartialEq for ProgramHandle {
-    fn eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-}
-
-#[derive(Default)]
-pub struct GpuState {
-    pub program: Option<ProgramHandle>,
-    pub buffer: Option<BufferHandle>,
-    pub uniforms: HashMap<UniformHandle, UniformValue>,
+#[derive(Clone, Debug)]
+pub struct AttributeInfo {
+    pub location: usize,
+    pub kind: SizedDataType,
 }
 
 pub struct ShadowGpu {
     gl: WebGl2RenderingContext,
     state: GpuState,
+    vaos: HashMap<BTreeMap<BufferHandle, Vec<BufferBinding>>, VaoHandle>,
 }
 
 impl ShadowGpu {
@@ -56,6 +43,7 @@ impl ShadowGpu {
         ShadowGpu {
             gl,
             state: GpuState::default(),
+            vaos: HashMap::default(),
         }
     }
 
@@ -71,10 +59,24 @@ impl ShadowGpu {
         Ok(())
     }
 
+    pub fn draw_arrays_instanced(
+        &mut self,
+        state: &GpuState,
+        mode: DrawMode,
+        first: i32,
+        count: i32,
+        instance_count: i32,
+    ) -> Result<()> {
+        self.set_state(state)?;
+        self.gl
+            .draw_arrays_instanced(mode as _, first, count, instance_count);
+        Ok(())
+    }
+
     pub fn get_uniform_handle(&self, program: &ProgramHandle, name: &str) -> Result<UniformHandle> {
         let location = self
             .gl
-            .get_uniform_location(&program.0, name)
+            .get_uniform_location(&program.program, name)
             .ok_or_else(|| anyhow!("Uniform {} not found.", name))?;
 
         Ok(UniformHandle::new(location))
@@ -87,12 +89,19 @@ impl ShadowGpu {
             self.state.program = new_state.program.clone();
         }
 
-        if self.state.buffer != new_state.buffer {
-            new_state.buffer.gpu_bind(&self.gl)?;
-            self.state.buffer = new_state.buffer.clone();
-        } else if let Some(buffer) = &new_state.buffer {
-            buffer.sync_data(&self.gl)?;
-        }
+        let vao = if let Some(vao) = self.vaos.get_mut(&new_state.buffers) {
+            vao
+        } else {
+            // Create VAO with bindings.
+            let vao = VaoHandle {
+                buffers: new_state.buffers.clone(),
+                vao: None,
+            };
+            self.vaos.insert(new_state.buffers.clone(), vao);
+            self.vaos.get_mut(&new_state.buffers).unwrap()
+        };
+
+        vao.gpu_bind(&self.gl)?;
 
         // Uniforms
         for (location, value) in &new_state.uniforms {
@@ -109,15 +118,14 @@ impl ShadowGpu {
         Ok(())
     }
 
-    pub fn create_buffer(&mut self, usage_hint: BufferUsageHint, attributes: &[SizedDataType]) -> BufferHandle {
-        BufferHandle::new(usage_hint, attributes)
+    pub fn create_buffer(&mut self, usage_hint: BufferUsageHint) -> BufferHandle {
+        BufferHandle::new(usage_hint)
     }
 
     pub fn link_program(
         &self,
         frag_shader: &FragmentShader,
         vertex_shader: &VertexShader,
-        attribute_locations: &[String],
     ) -> Result<ProgramHandle> {
         let gl_program = self
             .gl
@@ -126,13 +134,38 @@ impl ShadowGpu {
 
         self.gl.attach_shader(&gl_program, &frag_shader.0);
         self.gl.attach_shader(&gl_program, &vertex_shader.0);
-
-        for (location, attr) in attribute_locations.iter().enumerate() {
-            self.gl
-                .bind_attrib_location(&gl_program, location as _, attr);
-        }
-
         self.gl.link_program(&gl_program);
+
+        let active_attributes = self
+            .gl
+            .get_program_parameter(&gl_program, WebGl2RenderingContext::ACTIVE_ATTRIBUTES)
+            .as_f64()
+            .expect("ACTIVE_ATTRIBUTES should be numeric.") as u32;
+        let mut attributes = HashMap::new();
+        for i in 0..active_attributes {
+            let attr_info = self
+                .gl
+                .get_active_attrib(&gl_program, i)
+                .expect("Expected attribute info.");
+            let attribute_name = attr_info.name();
+            let attribute_type = attr_info.type_();
+            let attribute_size = attr_info.size();
+            if attribute_size > 1 {
+                panic!("Attribute size for {} is {}. Attribute sizes greater than 1 are not yet implemented.", attribute_name, attribute_size);
+            }
+            let location = self.gl.get_attrib_location(&gl_program, &attribute_name) as _;
+
+            let kind = UniformType::try_from(attribute_type)?;
+            let sized_kind = kind.as_sized_type();
+
+            attributes.insert(
+                attribute_name,
+                AttributeInfo {
+                    location,
+                    kind: sized_kind,
+                },
+            );
+        }
 
         if !self
             .gl
@@ -145,7 +178,10 @@ impl ShadowGpu {
             }
         }
 
-        Ok(ProgramHandle(Rc::new(gl_program)))
+        Ok(ProgramHandle {
+            program: Rc::new(gl_program),
+            attributes,
+        })
     }
 
     fn compile_shader(&self, shader_type: ShaderType, source: &str) -> Result<WebGlShader> {

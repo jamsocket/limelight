@@ -1,4 +1,4 @@
-use limelight::{vertex_attribute, Program};
+use limelight::{attribute, Program};
 
 // Color information can be:
 // - Global color (from uniform)
@@ -8,7 +8,7 @@ use limelight::{vertex_attribute, Program};
 
 pub type Color = [u8; 4];
 
-#[vertex_attribute]
+#[attribute]
 pub struct Line {
     start: [f32; 2],
     end: [f32; 2],
@@ -16,14 +16,14 @@ pub struct Line {
     color: Color,
 }
 
-#[vertex_attribute]
+#[attribute]
 pub struct Rect {
     upper_left: [f32; 2],
     lower_right: [f32; 2],
     color: Color,
 }
 
-#[vertex_attribute]
+#[attribute]
 pub struct Circle {
     center: [f32; 2],
     radius: f32,
@@ -33,7 +33,7 @@ pub struct Circle {
 pub const AXIS_HORIZONTAL: u32 = 0x0;
 pub const AXIS_VERTICAL: u32 = 0x1;
 
-#[vertex_attribute]
+#[attribute]
 pub struct Hairline {
     location: f32,
     color: Color,

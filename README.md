@@ -77,16 +77,16 @@ fn render_triangle(gl: WebGl2RenderingContext) {
 [![Two small triangles](https://github.com/drifting-in-space/limelight/raw/main/assets/02-buffer.png)](https://drifting-in-space.github.io/limelight/02-buffer/)
 
 Buffers enable arbitrary vertex attribute data to be passed into the shaders. Limelight provides a
-procedural macro (`vertex_attribute`) for mapping from a Rust-side `struct` to a GPU-side set of
+procedural macro (`attribute`) for mapping from a Rust-side `struct` to a GPU-side set of
 vertex attributes.
 
 ```rust
 use web_sys::WebGl2RenderingContext;
-use limelight::{Program, Renderer, Buffer, DrawMode, BufferUsageHint, vertex_attribute};
+use limelight::{Program, Renderer, Buffer, DrawMode, BufferUsageHint, attribute};
 
 // This attribute macro derives a number of traits, including `VertexAttribute`, which
 // is required for a type to be used in an `Buffer`.
-#[vertex_attribute]
+#[attribute]
 struct VertexDescription {
     position: [f32; 2], // field names are mapped to variables in the shader.
 }
@@ -187,7 +187,7 @@ section 14.2, *Deferring until the Draw Cycle*.) If a buffer or uniform is uncha
 calls, it is not re-written to the GPU.
 
 ```rust
-use limelight::{Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform, vertex_attribute};
+use limelight::{Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform, attribute};
 use web_sys::WebGl2RenderingContext;
 
 struct Animation {
@@ -239,7 +239,7 @@ impl Animation {
     }
 }
 
-#[vertex_attribute]
+#[attribute]
 struct VertexDescription {
     position: [f32; 2],
 }
