@@ -1,6 +1,6 @@
 [package]
 name = "limelight-derive"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 repository = "https://github.com/drifting-in-space/limelight"
 description = "Derive macro for limelight"
