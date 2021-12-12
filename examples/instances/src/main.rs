@@ -16,20 +16,20 @@ fn render_triangle(gl: WebGl2RenderingContext) {
     let mut program = Program::new(
         include_str!("../shaders/shader.vert"),
         include_str!("../shaders/shader.frag"),
-        DrawMode::Points,
+        DrawMode::TriangleFan,
     );
 
     let mut renderer = Renderer::new(gl);
 
     let instances = Buffer::new(
-        (0..10)
+        (0..20)
             .map(|instance_index| InstanceAttribute { instance_index })
             .collect(),
         BufferUsageHint::StaticDraw,
     );
 
     let vertices = Buffer::new(
-        (0..10)
+        (0..4)
             .map(|vertex_index| VertexAttribute { vertex_index })
             .collect(),
         BufferUsageHint::StaticDraw,
