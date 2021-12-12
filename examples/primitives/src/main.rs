@@ -1,5 +1,5 @@
 use limelight::{Renderer, renderer::Drawable};
-use limelight_primitives::{LineLayer, Line, RectLayer, Rect};
+use limelight_primitives::{LineLayer, Line, RectLayer, Rect, CircleLayer, Circle, Color};
 use wasm_bindgen::JsCast;
 use limelight_transform::TransformUniform;
 use web_sys::WebGl2RenderingContext;
@@ -8,11 +8,9 @@ fn render_primitives(gl: WebGl2RenderingContext) {
     let transform = TransformUniform::new();
     let mut line_layer = LineLayer::new(transform.uniform());
     let mut rect_layer = RectLayer::new(transform.uniform());
+    let mut circle_layer = CircleLayer::new(transform.uniform());
 
-    let mut renderer = Renderer::new(gl);
-
-    let lines = line_layer.buffer();
-    lines.set_data(vec![
+    line_layer.buffer().set_data(vec![
         Line {
             start: [0., 0.],
             end: [0.4, 0.9],
@@ -34,19 +32,34 @@ fn render_primitives(gl: WebGl2RenderingContext) {
             color: palette::named::SEAGREEN.into(),
         },
         Rect {
-            lower_right: [-0.3, 0.3],
-            upper_left: [-0.6, 0.4],
+            lower_right: [-0.3, 0.25],
+            upper_left: [-0.6, 0.35],
             color: palette::named::PALEVIOLETRED.into(),
         },
         Rect {
-            lower_right: [-0.3, 0.5],
-            upper_left: [-0.4, 0.6],
+            lower_right: [-0.3, 0.4],
+            upper_left: [-0.4, 0.5],
             color: palette::named::ORANGERED.into(),
         }
     ]);
 
+    circle_layer.buffer().set_data(vec![
+        Circle {
+            position: [0.3, 0.3],
+            radius: 0.1,
+            color: palette::named::SALMON.into(),
+        },
+        Circle {
+            position: [-0.2, 0.3],
+            radius: 0.2,
+            color: Color(0x44332266),
+        }
+    ]);
+
+    let mut renderer = Renderer::new(gl);
     line_layer.draw(&mut renderer).unwrap();
     rect_layer.draw(&mut renderer).unwrap();
+    circle_layer.draw(&mut renderer).unwrap();
 }
 
 fn get_gl() -> WebGl2RenderingContext {

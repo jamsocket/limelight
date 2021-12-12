@@ -2,7 +2,6 @@ use anyhow::Result;
 use limelight::{
     attribute, renderer::Drawable, Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform, state::{StateDescriptor, blending::{BlendFunction, BlendingFactorSrc, BlendingFactorDest}},
 };
-
 use crate::color::Color;
 
 #[attribute]
