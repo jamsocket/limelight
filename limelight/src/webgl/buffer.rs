@@ -1,4 +1,3 @@
-
 /// Enum of WebGL Bind Points.
 ///
 /// Each bind point is a global bind point in WebGL that can have an

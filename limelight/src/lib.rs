@@ -19,8 +19,8 @@ pub use draw_modes::DrawMode;
 pub use program::Program;
 pub use renderer::Renderer;
 pub use uniform::Uniform;
-pub use webgl::types::AsSizedDataType;
 pub use webgl::buffer::{BufferBindPoint, BufferUsageHint};
+pub use webgl::types::AsSizedDataType;
 
 #[allow(unused)]
 macro_rules! console_log {

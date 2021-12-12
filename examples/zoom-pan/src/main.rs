@@ -10,7 +10,7 @@ const HEIGHT: i32 = 900;
 const WIDTH: i32 = 900;
 
 struct Scene {
-    program: Program<VertexDescription>,
+    program: Program<VertexDescription, ()>,
     buffer: Buffer<VertexDescription>,
     transform: TransformUniform,
 }

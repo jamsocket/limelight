@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 limelight = {path="../limelight"}
 bytemuck = "1.7.2"
+palette = "0.6.0"
+anyhow = "1.0.51"

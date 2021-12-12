@@ -1,5 +1,5 @@
-use std::collections::{BTreeMap, HashMap};
 use crate::webgl::types::SizedDataType;
+use std::collections::{BTreeMap, HashMap};
 
 use super::{program::ProgramHandle, BufferHandle, UniformHandle, UniformValue};
 

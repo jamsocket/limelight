@@ -11,19 +11,20 @@ use crate::{
 };
 
 pub trait ProgramLike<T: Attribute, I: Attribute> {
-    fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T>>;
+    fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T, I>>;
 
     fn draw_mode(&self) -> DrawMode;
 }
 
-pub struct BoundProgram<T: Attribute> {
+pub struct BoundProgram<T: Attribute, I: Attribute> {
     handle: ProgramHandle,
     pub uniforms: Vec<(UniformHandle, Box<dyn GenericUniform>)>,
     draw_mode: DrawMode,
     _ph: PhantomData<T>,
+    _phi: PhantomData<I>,
 }
 
-impl<T: Attribute> BoundProgram<T> {
+impl<T: Attribute, I: Attribute> BoundProgram<T, I> {
     pub fn handle(&self) -> ProgramHandle {
         self.handle.clone()
     }
@@ -33,15 +34,16 @@ impl<T: Attribute> BoundProgram<T> {
     }
 }
 
-pub struct UnboundProgram<T: Attribute> {
+pub struct UnboundProgram<T: Attribute, I: Attribute> {
     fragment_shader_source: String,
     vertex_shader_source: String,
     uniforms: HashMap<String, Box<dyn GenericUniform>>,
     draw_mode: DrawMode,
     _ph: PhantomData<T>,
+    _phi: PhantomData<I>,
 }
 
-impl<T: Attribute> UnboundProgram<T> {
+impl<T: Attribute, I: Attribute> UnboundProgram<T, I> {
     pub fn with_uniform<U: UniformValueType>(
         &mut self,
         name: &str,
@@ -58,6 +60,7 @@ impl<T: Attribute> UnboundProgram<T> {
     fn new_dummy() -> Self {
         UnboundProgram {
             _ph: PhantomData::default(),
+            _phi: PhantomData::default(),
             fragment_shader_source: "".to_string(),
             vertex_shader_source: "".to_string(),
             uniforms: HashMap::new(),
@@ -65,7 +68,7 @@ impl<T: Attribute> UnboundProgram<T> {
         }
     }
 
-    pub fn bind(self, gpu: &ShadowGpu) -> Result<BoundProgram<T>> {
+    pub fn bind(self, gpu: &ShadowGpu) -> Result<BoundProgram<T, I>> {
         let vertex_shader = gpu.compile_vertex_shader(&self.vertex_shader_source)?;
         let fragment_shader = gpu.compile_fragment_shader(&self.fragment_shader_source)?;
         let program = gpu.link_program(&fragment_shader, &vertex_shader)?;
@@ -82,16 +85,17 @@ impl<T: Attribute> UnboundProgram<T> {
             uniforms: bound_uniforms,
             draw_mode: self.draw_mode,
             _ph: PhantomData::default(),
+            _phi: PhantomData::default(),
         })
     }
 }
 
-pub enum Program<T: Attribute> {
-    Unbound(UnboundProgram<T>),
-    Bound(BoundProgram<T>),
+pub enum Program<T: Attribute, I: Attribute> {
+    Unbound(UnboundProgram<T, I>),
+    Bound(BoundProgram<T, I>),
 }
 
-impl<T: Attribute> Program<T> {
+impl<T: Attribute, I: Attribute> Program<T, I> {
     pub fn new(
         vertex_shader_source: &str,
         fragment_shader_source: &str,
@@ -103,12 +107,13 @@ impl<T: Attribute> Program<T> {
             uniforms: HashMap::new(),
             draw_mode,
             _ph: PhantomData::default(),
+            _phi: PhantomData::default(),
         })
     }
 }
 
-impl<T: Attribute, I: Attribute> ProgramLike<T, I> for BoundProgram<T> {
-    fn get_program(&mut self, _gpu: &ShadowGpu) -> Result<&BoundProgram<T>> {
+impl<T: Attribute, I: Attribute> ProgramLike<T, I> for BoundProgram<T, I> {
+    fn get_program(&mut self, _gpu: &ShadowGpu) -> Result<&BoundProgram<T, I>> {
         Ok(self)
     }
 
@@ -117,7 +122,7 @@ impl<T: Attribute, I: Attribute> ProgramLike<T, I> for BoundProgram<T> {
     }
 }
 
-impl<T: Attribute> Program<T> {
+impl<T: Attribute, I: Attribute> Program<T, I> {
     pub fn with_uniform<U: UniformValueType>(mut self, name: &str, uniform: Uniform<U>) -> Self {
         match &mut self {
             Program::Bound(_) => {
@@ -132,8 +137,8 @@ impl<T: Attribute> Program<T> {
     }
 }
 
-impl<T: Attribute, I: Attribute> ProgramLike<T, I> for Program<T> {
-    fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T>> {
+impl<T: Attribute, I: Attribute> ProgramLike<T, I> for Program<T, I> {
+    fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T, I>> {
         match self {
             Program::Bound(p) => Ok(p),
             Program::Unbound(p) => {

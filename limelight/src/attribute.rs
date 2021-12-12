@@ -1,6 +1,4 @@
-use crate::webgl::types::{SizedDataType, DataType};
-
-
+use crate::webgl::types::{DataType, SizedDataType};
 
 #[derive(Debug, PartialEq)]
 pub struct AttributeBinding {

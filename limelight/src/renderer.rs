@@ -172,5 +172,5 @@ impl Renderer {
 }
 
 pub trait Drawable {
-    fn draw(renderer: &mut Renderer) -> Result<()>;
+    fn draw(&mut self, renderer: &mut Renderer) -> Result<()>;
 }

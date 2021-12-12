@@ -1,6 +1,4 @@
-use crate::{
-    Attribute, shadow_gpu::BufferHandle, webgl::buffer::BufferUsageHint,
-};
+use crate::{shadow_gpu::BufferHandle, webgl::buffer::BufferUsageHint, Attribute};
 use std::marker::PhantomData;
 
 pub trait BufferLike<T: Attribute> {
@@ -23,6 +21,10 @@ impl<T: Attribute> Buffer<T> {
             handle,
             _ph: PhantomData::default(),
         }
+    }
+
+    pub fn new_empty(usage_hint: BufferUsageHint) -> Self {
+        Self::new(Vec::new(), usage_hint)
     }
 
     pub fn set_data(&self, data: Vec<T>) {

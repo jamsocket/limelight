@@ -6,7 +6,7 @@ use yew::services::RenderService;
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
 
 struct Animation {
-    program: Program<VertexDescription>,
+    program: Program<VertexDescription, ()>,
     buffer: Buffer<VertexDescription>,
     uniform: Uniform<[f32; 3]>,
 }

@@ -1,20 +1,15 @@
-use limelight::{attribute, Program};
+mod color;
+mod line;
+
+use color::Color;
+use limelight::attribute;
+pub use line::{Line, LineLayer};
 
 // Color information can be:
 // - Global color (from uniform)
 // - Per-element color ([u8; 4])
 // - Per-element value, colorized in shader (f32)
 // For now, support per-element color only.
-
-pub type Color = [u8; 4];
-
-#[attribute]
-pub struct Line {
-    start: [f32; 2],
-    end: [f32; 2],
-    thickness: f32,
-    color: Color,
-}
 
 #[attribute]
 pub struct Rect {
@@ -38,8 +33,4 @@ pub struct Hairline {
     location: f32,
     color: Color,
     axis: u32,
-}
-
-pub fn line_program() -> Program<Line> {
-    todo!()
 }

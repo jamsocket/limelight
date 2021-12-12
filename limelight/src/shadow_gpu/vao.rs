@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use crate::webgl::types::DataType;
+use std::collections::BTreeMap;
 
 use super::{buffer::BindResult, state::BufferBinding, BufferHandle};
 use anyhow::anyhow;

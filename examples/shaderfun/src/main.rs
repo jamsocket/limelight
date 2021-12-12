@@ -14,7 +14,7 @@ struct Model {
     link: ComponentLink<Self>,
     canvas_ref: NodeRef,
     renderer: Option<Renderer>,
-    program: Program<()>,
+    program: Program<(), ()>,
     render_handle: Option<RenderTask>,
     time_uniform: Uniform<f32>,
     pos_uniform: Uniform<[f32; 2]>,

@@ -156,12 +156,12 @@ struct Model {
     buffer: Buffer<VertexDescription>,
     canvas_ref: NodeRef,
     renderer: Option<Renderer>,
-    program: Program<VertexDescription>,
+    program: Program<VertexDescription, ()>,
     render_handle: Option<RenderTask>,
     state: GameState,
+    paddle_direction: f32,
     _key_down_handle: KeyListenerHandle,
     _key_up_handle: KeyListenerHandle,
-    paddle_direction: f32,
 }
 
 impl Component for Model {
