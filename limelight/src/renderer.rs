@@ -46,7 +46,7 @@ impl BufferBindingGroup {
 
             for attribute in T::describe() {
                 if let Some(program_binding) = self.attributes.get(&attribute.variable_name) {
-                    if attribute.kind != program_binding.kind {
+                    if attribute.kind != program_binding.kind.as_sized_type() {
                         // panic!("The variable {} has type {:?} as an attribute, but {:?} in the program definition.", attribute.variable_name, attribute.kind, program_binding.kind);
                         crate::console_log!("The variable {} has type {:?} as an attribute, but {:?} in the program definition.", attribute.variable_name, attribute.kind, program_binding.kind);
                     }
@@ -102,6 +102,7 @@ impl Renderer {
             program: Some(bound_program.handle()),
             buffers,
             uniforms,
+            globals: program.globals(),
         };
 
         match draw_call {

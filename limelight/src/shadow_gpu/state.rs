@@ -1,4 +1,4 @@
-use crate::webgl::types::SizedDataType;
+use crate::{webgl::types::SizedDataType, state::StateDescriptor};
 use std::collections::{BTreeMap, HashMap};
 
 use super::{program::ProgramHandle, BufferHandle, UniformHandle, UniformValue};
@@ -20,4 +20,5 @@ pub struct GpuState {
     pub program: Option<ProgramHandle>,
     pub buffers: BTreeMap<BufferHandle, Vec<BufferBinding>>,
     pub uniforms: HashMap<UniformHandle, UniformValue>,
+    pub globals: StateDescriptor,
 }

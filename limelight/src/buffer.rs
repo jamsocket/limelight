@@ -7,6 +7,7 @@ pub trait BufferLike<T: Attribute> {
     fn len(&self) -> usize;
 }
 
+#[derive(Clone)]
 pub struct Buffer<T: Attribute> {
     handle: BufferHandle,
     _ph: PhantomData<T>,

@@ -7,11 +7,13 @@ use std::{
 use crate::{
     shadow_gpu::{AttributeInfo, ProgramHandle, ShadowGpu, UniformHandle, UniformValueType},
     uniform::GenericUniform,
-    Attribute, DrawMode, Uniform,
+    Attribute, DrawMode, Uniform, state::{StateDescriptor},
 };
 
 pub trait ProgramLike<T: Attribute, I: Attribute> {
     fn get_program(&mut self, gpu: &ShadowGpu) -> Result<&BoundProgram<T, I>>;
+
+    fn globals(&self) -> StateDescriptor;
 
     fn draw_mode(&self) -> DrawMode;
 }
@@ -20,6 +22,7 @@ pub struct BoundProgram<T: Attribute, I: Attribute> {
     handle: ProgramHandle,
     pub uniforms: Vec<(UniformHandle, Box<dyn GenericUniform>)>,
     draw_mode: DrawMode,
+    state: StateDescriptor,
     _ph: PhantomData<T>,
     _phi: PhantomData<I>,
 }
@@ -39,6 +42,7 @@ pub struct UnboundProgram<T: Attribute, I: Attribute> {
     vertex_shader_source: String,
     uniforms: HashMap<String, Box<dyn GenericUniform>>,
     draw_mode: DrawMode,
+    state: StateDescriptor,
     _ph: PhantomData<T>,
     _phi: PhantomData<I>,
 }
@@ -64,6 +68,7 @@ impl<T: Attribute, I: Attribute> UnboundProgram<T, I> {
             fragment_shader_source: "".to_string(),
             vertex_shader_source: "".to_string(),
             uniforms: HashMap::new(),
+            state: StateDescriptor::default(),
             draw_mode: DrawMode::Triangles,
         }
     }
@@ -84,6 +89,7 @@ impl<T: Attribute, I: Attribute> UnboundProgram<T, I> {
             handle: program.clone(),
             uniforms: bound_uniforms,
             draw_mode: self.draw_mode,
+            state: self.state,
             _ph: PhantomData::default(),
             _phi: PhantomData::default(),
         })
@@ -106,6 +112,7 @@ impl<T: Attribute, I: Attribute> Program<T, I> {
             vertex_shader_source: vertex_shader_source.to_string(),
             uniforms: HashMap::new(),
             draw_mode,
+            state: StateDescriptor::default(),
             _ph: PhantomData::default(),
             _phi: PhantomData::default(),
         })
@@ -115,6 +122,10 @@ impl<T: Attribute, I: Attribute> Program<T, I> {
 impl<T: Attribute, I: Attribute> ProgramLike<T, I> for BoundProgram<T, I> {
     fn get_program(&mut self, _gpu: &ShadowGpu) -> Result<&BoundProgram<T, I>> {
         Ok(self)
+    }
+
+    fn globals(&self) -> StateDescriptor {
+        self.state.clone()
     }
 
     fn draw_mode(&self) -> DrawMode {
@@ -130,6 +141,19 @@ impl<T: Attribute, I: Attribute> Program<T, I> {
             }
             Program::Unbound(p) => {
                 p.with_uniform(name, uniform);
+            }
+        }
+
+        self
+    }
+
+    pub fn with_state(mut self, state: StateDescriptor) -> Self {
+        match &mut self {
+            Program::Bound(_) => {
+                panic!("Tried calling with_uniform on a program that is already bound.")
+            }
+            Program::Unbound(p) => {
+                p.state = state;
             }
         }
 
@@ -153,6 +177,13 @@ impl<T: Attribute, I: Attribute> ProgramLike<T, I> for Program<T, I> {
                     _ => panic!(),
                 }
             }
+        }
+    }
+
+    fn globals(&self) -> StateDescriptor {
+        match self {
+            Program::Bound(b) => b.state.clone(),
+            Program::Unbound(b) => b.state.clone(),
         }
     }
 

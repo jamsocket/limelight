@@ -1,4 +1,8 @@
-#[derive(Copy, Clone, Debug)]
+use web_sys::WebGl2RenderingContext;
+
+use crate::shadow_gpu::GpuBind;
+
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(u32)]
 pub enum BlendingFactorDest {
     Zero = 0,
@@ -17,7 +21,7 @@ impl Default for BlendingFactorDest {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(u32)]
 pub enum BlendingFactorSrc {
     Zero = 0,
@@ -37,7 +41,7 @@ impl Default for BlendingFactorSrc {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(u32)]
 pub enum BlendEquation {
     Add = 0x8006,
@@ -53,9 +57,24 @@ impl Default for BlendEquation {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, PartialEq)]
 pub struct BlendFunction {
     pub source_factor: BlendingFactorSrc,
     pub dst_factor: BlendingFactorDest,
     pub equation: BlendEquation,
+}
+
+impl GpuBind for Option<BlendFunction> {
+    fn gpu_bind(&self, gl: &web_sys::WebGl2RenderingContext) -> anyhow::Result<()> {
+        match self {
+            Some(blend) => {
+                gl.blend_func(blend.source_factor as _, blend.dst_factor as _);
+                gl.blend_equation(blend.equation as _);
+                gl.enable(WebGl2RenderingContext::BLEND);        
+            },
+            None => gl.disable(WebGl2RenderingContext::BLEND),
+        }
+        
+        Ok(())
+    }
 }

@@ -4,7 +4,7 @@ use self::vao::VaoHandle;
 pub use self::{program::ProgramHandle, state::GpuState};
 use crate::webgl::buffer::BufferUsageHint;
 use crate::webgl::types::GlSizedDataType;
-use crate::{webgl::types::SizedDataType, DrawMode};
+use crate::DrawMode;
 use anyhow::{anyhow, Result};
 use std::collections::BTreeMap;
 use std::{collections::HashMap, rc::Rc};
@@ -17,7 +17,7 @@ mod state;
 mod uniforms;
 mod vao;
 
-trait GpuBind {
+pub trait GpuBind {
     fn gpu_bind(&self, gl: &WebGl2RenderingContext) -> Result<()>;
 }
 
@@ -27,7 +27,7 @@ pub struct VertexShader(WebGlShader);
 #[derive(Clone, Debug)]
 pub struct AttributeInfo {
     pub location: usize,
-    pub kind: SizedDataType,
+    pub kind: GlSizedDataType,
 }
 
 pub struct ShadowGpu {
@@ -85,6 +85,12 @@ impl ShadowGpu {
         if self.state.program != new_state.program {
             new_state.program.gpu_bind(&self.gl)?;
             self.state.program = new_state.program.clone();
+        }
+
+        // Globals
+        if self.state.globals.blend_func != new_state.globals.blend_func {
+            new_state.globals.blend_func.gpu_bind(&self.gl)?;
+            self.state.globals.blend_func = new_state.globals.blend_func.clone();
         }
 
         let vao = if let Some(vao) = self.vaos.get_mut(&new_state.buffers) {
@@ -154,15 +160,8 @@ impl ShadowGpu {
             let location = self.gl.get_attrib_location(&gl_program, &attribute_name) as _;
 
             let kind = GlSizedDataType::try_from(attribute_type)?;
-            let sized_kind = kind.as_sized_type();
 
-            attributes.insert(
-                attribute_name,
-                AttributeInfo {
-                    location,
-                    kind: sized_kind,
-                },
-            );
+            attributes.insert(attribute_name, AttributeInfo { location, kind });
         }
 
         if !self
