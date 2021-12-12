@@ -44,6 +44,8 @@ fn get_gl() -> WebGl2RenderingContext {
 
 fn main() {
     console_error_panic_hook::set_once();
+    wasm_logger::init(wasm_logger::Config::default());
+
     let gl = get_gl();
 
     render_lines(gl);

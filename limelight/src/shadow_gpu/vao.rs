@@ -16,6 +16,7 @@ impl VaoHandle {
             gl.bind_vertex_array(Some(vao));
             false
         } else {
+            log::info!("Creating Vertex Array.");
             let vao = gl
                 .create_vertex_array()
                 .ok_or_else(|| anyhow!("Couldn't create vertex array."))?;
@@ -35,6 +36,7 @@ impl VaoHandle {
                 // we don't need to update the bindings.
                 continue;
             }
+            log::info!("Updating or creating initial bindings: {:?}", bindings);
 
             for binding in bindings {
                 match binding.kind.data_type() {

@@ -115,12 +115,6 @@ impl BufferHandle {
         data: &[u8],
         usage_hint: BufferUsageHint,
     ) -> Result<BufferGlObjects> {
-        // let vao = gl
-        //     .create_vertex_array()
-        //     .ok_or_else(|| anyhow!("Couldn't create vertex array."))?;
-
-        // gl.bind_vertex_array(Some(&vao));
-
         let buffer = gl
             .create_buffer()
             .ok_or_else(|| anyhow!("Couldn't create buffer."))?;
@@ -152,6 +146,7 @@ impl BufferHandle {
                     Ok(BindResult::BoundExisting)
                 } else {
                     // The current buffer isn't big enough, need to discard it and create a new one.
+                    log::info!("The old buffer could fit {} bytes, but {} are needed; recreating.", gl_objects.capacity, data.data.byte_len());
                     gl.delete_buffer(Some(&gl_objects.buffer));
 
                     *gl_objects = Self::create(gl, data.data.as_bytes(), inner.usage_hint)?;
@@ -163,6 +158,7 @@ impl BufferHandle {
             }
         } else {
             // We have not created this buffer before.
+            log::info!("Buffer used for the first time, creating with {} bytes.", data.data.byte_len());
             *gl_objects = Some(Self::create(gl, data.data.as_bytes(), inner.usage_hint)?);
 
             Ok(BindResult::BoundNew)

@@ -22,13 +22,13 @@ pub use uniform::Uniform;
 pub use webgl::buffer::{BufferBindPoint, BufferUsageHint};
 pub use webgl::types::AsSizedDataType;
 
-#[allow(unused)]
-macro_rules! console_log {
-    ($($x: expr), +) => (
-        web_sys::console::log_1(&wasm_bindgen::JsValue::from(
-            format!($($x),+)));
-    )
-}
+// #[allow(unused)]
+// macro_rules! console_log {
+//     ($($x: expr), +) => (
+//         web_sys::console::log_1(&wasm_bindgen::JsValue::from(
+//             format!($($x),+)));
+//     )
+// }
 
-#[allow(unused)]
-pub(crate) use console_log;
+// #[allow(unused)]
+// pub(crate) use console_log;

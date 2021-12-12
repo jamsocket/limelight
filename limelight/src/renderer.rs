@@ -47,8 +47,8 @@ impl BufferBindingGroup {
             for attribute in T::describe() {
                 if let Some(program_binding) = self.attributes.get(&attribute.variable_name) {
                     if attribute.kind != program_binding.kind.as_sized_type() {
-                        // panic!("The variable {} has type {:?} as an attribute, but {:?} in the program definition.", attribute.variable_name, attribute.kind, program_binding.kind);
-                        crate::console_log!("The variable {} has type {:?} as an attribute, but {:?} in the program definition.", attribute.variable_name, attribute.kind, program_binding.kind);
+                        log::warn!("The variable {} has type {:?} as an attribute, but {:?} in the program definition.",
+                            attribute.variable_name, attribute.kind, program_binding.kind);
                     }
 
                     bindings.push(BufferBinding {
@@ -62,7 +62,7 @@ impl BufferBindingGroup {
 
                     offset += attribute.kind.byte_size();
                 } else {
-                    crate::console_log!(
+                    log::warn!(
                         "Attribute has variable {}, which isn't used in the program.",
                         attribute.variable_name
                     );
@@ -70,7 +70,7 @@ impl BufferBindingGroup {
             }
 
             if bindings.is_empty() {
-                crate::console_log!("No attributes in the buffer overlapped with the program.");
+                log::warn!("No attributes in the buffer overlapped with the program.");
             } else {
                 self.bindings.insert(buffer, bindings);
             }

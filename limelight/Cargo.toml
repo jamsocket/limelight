@@ -32,3 +32,4 @@ web-sys = { version="0.3.55", features = [
 limelight-derive = { version="0.1.1", path="./limelight-derive" }
 anyhow = "1.0.48"
 slice-of-array = "0.3.1"
+log = "0.4.14"
