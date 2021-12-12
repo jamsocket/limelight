@@ -10,7 +10,7 @@ pub struct Color(pub u32);
 
 impl AsSizedDataType for Color {
     fn as_sized_data_type() -> SizedDataType {
-        SizedDataType::new(DataType::Int, 1)
+        SizedDataType::new(DataType::UnsignedInt, 1)
     }
 }
 

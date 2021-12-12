@@ -15,11 +15,13 @@ fn render_lines(gl: WebGl2RenderingContext) {
             start: [0., 0.],
             end: [0.4, 0.9],
             width: 0.03,
+            color: palette::named::GOLD.into(),
         },
         Line {
             start: [-0.3, -0.3],
             end: [0.4, 0.9],
             width: 0.01,
+            color: palette::named::FIREBRICK.into(),
         },
     ]);
 

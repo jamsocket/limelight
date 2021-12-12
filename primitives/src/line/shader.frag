@@ -2,7 +2,7 @@
 
 precision highp float;
 
-//in vec4 v_color;
+flat in uint v_color;
 in vec2 v_edge;
 
 out vec4 f_color;
@@ -15,5 +15,9 @@ void main() {
     float ycov = min(clamp(0., 1., v_edge.y / dy), clamp(0., 1., (1. - v_edge.y) / dy));
     float alpha = xcov * ycov;
 
-    f_color = vec4(vec3(0.,0.4,0.6) * alpha, alpha);
+    f_color = vec4(
+        float((v_color & 0x000000FFu)) / 255.,
+        float((v_color & 0x0000FF00u) >> 8) / 255.,
+        float((v_color & 0x00FF0000u) >> 16) / 255.,
+        float((v_color & 0xFF000000u) >> 24) / 255.);
 }

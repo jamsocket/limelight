@@ -10,3 +10,4 @@ web-sys = "0.3.51"
 limelight = { path="../../limelight" }
 limelight-primitives = {path="../../primitives"}
 limelight-transform = {path="../../transform"}
+palette = { version = "0.6.0", features = ["named"] }

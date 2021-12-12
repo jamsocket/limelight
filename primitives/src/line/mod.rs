@@ -3,12 +3,14 @@ use limelight::{
     attribute, renderer::Drawable, Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform, state::{StateDescriptor, blending::{BlendFunction, BlendingFactorSrc, BlendingFactorDest}},
 };
 
+use crate::color::Color;
+
 #[attribute]
 pub struct Line {
     pub start: [f32; 2],
     pub end: [f32; 2],
     pub width: f32,
-    //color: Color,
+    pub color: Color,
 }
 
 pub struct LineLayer {

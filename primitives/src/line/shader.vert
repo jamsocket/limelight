@@ -2,11 +2,11 @@
 
 in vec2 start;
 in vec2 end;
-in vec4 color;
+in uint color;
 in float width;
 uniform mat4 u_transform;
 
-//out vec4 v_color;
+flat out uint v_color;
 out vec2 v_edge;
 
 void main() {
@@ -38,5 +38,5 @@ void main() {
 
     gl_Position = u_transform * gl_Position;
 
-    //v_color = color;
+    v_color = color;
 }
