@@ -6,8 +6,9 @@ use std::{
 
 use crate::{
     shadow_gpu::{AttributeInfo, ProgramHandle, ShadowGpu, UniformHandle, UniformValueType},
+    state::StateDescriptor,
     uniform::GenericUniform,
-    Attribute, DrawMode, Uniform, state::{StateDescriptor},
+    Attribute, DrawMode, Uniform,
 };
 
 pub trait ProgramLike<T: Attribute, I: Attribute> {
@@ -55,7 +56,7 @@ impl<T: Attribute, I: Attribute> UnboundProgram<T, I> {
     ) -> &mut Self {
         match self.uniforms.entry(name.to_string()) {
             Entry::Occupied(_) => panic!("Tried to set uniform {} more than once.", name),
-            Entry::Vacant(e) => e.insert(Box::new(uniform.clone())),
+            Entry::Vacant(e) => e.insert(Box::new(uniform)),
         };
 
         self
@@ -86,7 +87,7 @@ impl<T: Attribute, I: Attribute> UnboundProgram<T, I> {
         }
 
         Ok(BoundProgram {
-            handle: program.clone(),
+            handle: program,
             uniforms: bound_uniforms,
             draw_mode: self.draw_mode,
             state: self.state,

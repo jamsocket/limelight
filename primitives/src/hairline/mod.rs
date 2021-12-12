@@ -1,4 +1,8 @@
-use limelight::{attribute, AsSizedDataType, webgl::types::{SizedDataType, DataType}};
+use limelight::{
+    attribute,
+    webgl::types::{DataType, SizedDataType},
+    AsSizedDataType,
+};
 
 use crate::color::Color;
 

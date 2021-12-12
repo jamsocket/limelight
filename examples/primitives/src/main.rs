@@ -1,7 +1,7 @@
-use limelight::{Renderer, renderer::Drawable};
-use limelight_primitives::{LineLayer, Line, RectLayer, Rect, CircleLayer, Circle, Color};
-use wasm_bindgen::JsCast;
+use limelight::{renderer::Drawable, Renderer};
+use limelight_primitives::{Circle, CircleLayer, Color, Line, LineLayer, Rect, RectLayer};
 use limelight_transform::TransformUniform;
+use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
 fn render_primitives(gl: WebGl2RenderingContext) {
@@ -40,7 +40,7 @@ fn render_primitives(gl: WebGl2RenderingContext) {
             lower_right: [-0.3, 0.4],
             upper_left: [-0.4, 0.5],
             color: palette::named::ORANGERED.into(),
-        }
+        },
     ]);
 
     circle_layer.buffer().set_data(vec![
@@ -53,7 +53,7 @@ fn render_primitives(gl: WebGl2RenderingContext) {
             position: [-0.2, 0.3],
             radius: 0.2,
             color: Color(0x44332266),
-        }
+        },
     ]);
 
     let mut renderer = Renderer::new(gl);

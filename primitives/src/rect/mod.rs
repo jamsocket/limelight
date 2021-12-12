@@ -1,5 +1,13 @@
 use anyhow::Result;
-use limelight::{attribute, Buffer, Program, renderer::Drawable, DummyBuffer, BufferUsageHint, Uniform, state::{StateDescriptor, blending::{BlendFunction, BlendingFactorSrc, BlendingFactorDest}}, DrawMode};
+use limelight::{
+    attribute,
+    renderer::Drawable,
+    state::{
+        blending::{BlendFunction, BlendingFactorDest, BlendingFactorSrc},
+        StateDescriptor,
+    },
+    Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform,
+};
 
 use crate::color::Color;
 
@@ -30,7 +38,7 @@ impl RectLayer {
             }),
             ..Default::default()
         })
-        .with_uniform("u_transform", transform.clone());
+        .with_uniform("u_transform", transform);
 
         RectLayer {
             rects: Buffer::new_empty(BufferUsageHint::DynamicDraw),

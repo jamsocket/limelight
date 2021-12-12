@@ -1,8 +1,14 @@
+use crate::color::Color;
 use anyhow::Result;
 use limelight::{
-    attribute, renderer::Drawable, Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform, state::{StateDescriptor, blending::{BlendFunction, BlendingFactorSrc, BlendingFactorDest}},
+    attribute,
+    renderer::Drawable,
+    state::{
+        blending::{BlendFunction, BlendingFactorDest, BlendingFactorSrc},
+        StateDescriptor,
+    },
+    Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform,
 };
-use crate::color::Color;
 
 #[attribute]
 pub struct Line {
@@ -32,7 +38,7 @@ impl LineLayer {
             }),
             ..Default::default()
         })
-        .with_uniform("u_transform", transform.clone());
+        .with_uniform("u_transform", transform);
 
         LineLayer {
             lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),

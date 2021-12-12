@@ -57,7 +57,7 @@ pub struct BufferHandle(Rc<BufferHandleInner>);
 
 impl PartialOrd for BufferHandle {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -110,6 +110,10 @@ impl BufferHandle {
         self.0.data.borrow().length
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.data.borrow().length == 0
+    }
+
     fn create(
         gl: &WebGl2RenderingContext,
         data: &[u8],
@@ -120,7 +124,7 @@ impl BufferHandle {
             .ok_or_else(|| anyhow!("Couldn't create buffer."))?;
 
         gl.bind_buffer(BufferBindPoint::ArrayBuffer as _, Some(&buffer));
-        gl.buffer_data_with_u8_array(BufferBindPoint::ArrayBuffer as _, &data, usage_hint as _);
+        gl.buffer_data_with_u8_array(BufferBindPoint::ArrayBuffer as _, data, usage_hint as _);
 
         Ok(BufferGlObjects {
             buffer,
@@ -146,7 +150,11 @@ impl BufferHandle {
                     Ok(BindResult::BoundExisting)
                 } else {
                     // The current buffer isn't big enough, need to discard it and create a new one.
-                    log::info!("The old buffer could fit {} bytes, but {} are needed; recreating.", gl_objects.capacity, data.data.byte_len());
+                    log::info!(
+                        "The old buffer could fit {} bytes, but {} are needed; recreating.",
+                        gl_objects.capacity,
+                        data.data.byte_len()
+                    );
                     gl.delete_buffer(Some(&gl_objects.buffer));
 
                     *gl_objects = Self::create(gl, data.data.as_bytes(), inner.usage_hint)?;
@@ -158,7 +166,10 @@ impl BufferHandle {
             }
         } else {
             // We have not created this buffer before.
-            log::info!("Buffer used for the first time, creating with {} bytes.", data.data.byte_len());
+            log::info!(
+                "Buffer used for the first time, creating with {} bytes.",
+                data.data.byte_len()
+            );
             *gl_objects = Some(Self::create(gl, data.data.as_bytes(), inner.usage_hint)?);
 
             Ok(BindResult::BoundNew)

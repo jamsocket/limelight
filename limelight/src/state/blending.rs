@@ -70,11 +70,11 @@ impl GpuBind for Option<BlendFunction> {
             Some(blend) => {
                 gl.blend_func(blend.source_factor as _, blend.dst_factor as _);
                 gl.blend_equation(blend.equation as _);
-                gl.enable(WebGl2RenderingContext::BLEND);        
-            },
+                gl.enable(WebGl2RenderingContext::BLEND);
+            }
             None => gl.disable(WebGl2RenderingContext::BLEND),
         }
-        
+
         Ok(())
     }
 }

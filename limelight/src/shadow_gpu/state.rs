@@ -1,4 +1,4 @@
-use crate::{webgl::types::SizedDataType, state::StateDescriptor};
+use crate::{state::StateDescriptor, webgl::types::SizedDataType};
 use std::collections::{BTreeMap, HashMap};
 
 use super::{program::ProgramHandle, BufferHandle, UniformHandle, UniformValue};

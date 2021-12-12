@@ -115,7 +115,7 @@ impl ShadowGpu {
                 }
             }
 
-            self.state.uniforms.insert(location.clone(), value.clone());
+            self.state.uniforms.insert(location.clone(), *value);
             value.bind(&self.gl, location);
         }
 

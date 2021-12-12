@@ -18,6 +18,12 @@ fn scale_center_to_matrix(
     ]
 }
 
+impl Default for TransformUniform {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TransformUniform {
     pub fn new() -> Self {
         let scale = (1., 1.);

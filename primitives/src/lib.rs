@@ -1,11 +1,11 @@
+mod circle;
 mod color;
+mod hairline;
 mod line;
 mod rect;
-mod circle;
-mod hairline;
 
+pub use circle::{Circle, CircleLayer};
 pub use color::Color;
+pub use hairline::{Hairline, Orientation};
 pub use line::{Line, LineLayer};
 pub use rect::{Rect, RectLayer};
-pub use hairline::{Hairline, Orientation};
-pub use circle::{Circle, CircleLayer};

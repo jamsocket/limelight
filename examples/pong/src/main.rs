@@ -90,7 +90,7 @@ impl GameState {
         }
     }
 
-    fn into_quads(&self) -> Vec<VertexDescription> {
+    fn as_quads(&self) -> Vec<VertexDescription> {
         let left_paddle_left = LEFT_BOUND + PADDLE_BUFFER - PADDLE_WIDTH / 2.;
         let left_paddle_right = LEFT_BOUND + PADDLE_BUFFER + PADDLE_WIDTH / 2.;
         let left_paddle_top = self.paddle_position + PADDLE_HEIGHT / 2.;
@@ -218,7 +218,7 @@ impl Component for Model {
             Msg::Render(_) => {
                 self.state.move_paddle(self.paddle_direction);
                 self.state.step();
-                self.buffer.set_data(self.state.into_quads());
+                self.buffer.set_data(self.state.as_quads());
 
                 if let Some(renderer) = self.renderer.as_mut() {
                     renderer.render(&mut self.program, &self.buffer).unwrap();

@@ -1,6 +1,7 @@
 use crate::{shadow_gpu::BufferHandle, webgl::buffer::BufferUsageHint, Attribute};
 use std::marker::PhantomData;
 
+#[allow(clippy::len_without_is_empty)]
 pub trait BufferLike<T: Attribute> {
     fn get_buffer(&self) -> Option<BufferHandle>;
 
