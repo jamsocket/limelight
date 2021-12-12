@@ -78,7 +78,7 @@ fn render_triangle(gl: WebGl2RenderingContext) {
 
 Buffers enable arbitrary vertex attribute data to be passed into the shaders. Limelight provides a
 procedural macro (`attribute`) for mapping from a Rust-side `struct` to a GPU-side set of
-vertex attributes.
+vertex attributes. To use this macro, your crate will also have to depend on [`bytemuck`](https://docs.rs/bytemuck/latest/bytemuck/) and its `derive` feature.
 
 ```rust
 use web_sys::WebGl2RenderingContext;
