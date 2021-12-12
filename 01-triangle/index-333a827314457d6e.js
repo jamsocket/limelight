@@ -21,31 +21,6 @@ function takeObject(idx) {
     return ret;
 }
 
-let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
-
-cachedTextDecoder.decode();
-
-let cachegetUint8Memory0 = null;
-function getUint8Memory0() {
-    if (cachegetUint8Memory0 === null || cachegetUint8Memory0.buffer !== wasm.memory.buffer) {
-        cachegetUint8Memory0 = new Uint8Array(wasm.memory.buffer);
-    }
-    return cachegetUint8Memory0;
-}
-
-function getStringFromWasm0(ptr, len) {
-    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
-}
-
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
-
-    heap[idx] = obj;
-    return idx;
-}
-
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
@@ -64,6 +39,15 @@ function getInt32Memory0() {
         cachegetInt32Memory0 = new Int32Array(wasm.memory.buffer);
     }
     return cachegetInt32Memory0;
+}
+
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
+
+    heap[idx] = obj;
+    return idx;
 }
 
 function debugString(val) {
@@ -133,6 +117,14 @@ function debugString(val) {
 
 let WASM_VECTOR_LEN = 0;
 
+let cachegetUint8Memory0 = null;
+function getUint8Memory0() {
+    if (cachegetUint8Memory0 === null || cachegetUint8Memory0.buffer !== wasm.memory.buffer) {
+        cachegetUint8Memory0 = new Uint8Array(wasm.memory.buffer);
+    }
+    return cachegetUint8Memory0;
+}
+
 let cachedTextEncoder = new TextEncoder('utf-8');
 
 const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
@@ -184,6 +176,14 @@ function passStringToWasm0(arg, malloc, realloc) {
 
     WASM_VECTOR_LEN = offset;
     return ptr;
+}
+
+let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+
+cachedTextDecoder.decode();
+
+function getStringFromWasm0(ptr, len) {
+    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
 function getArrayU8FromWasm0(ptr, len) {
@@ -259,16 +259,12 @@ async function load(module, imports) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('index-686fc0d87561d727_bg.wasm', import.meta.url);
+        input = new URL('index-333a827314457d6e_bg.wasm', import.meta.url);
     }
     const imports = {};
     imports.wbg = {};
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
-    };
-    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
-        var ret = getStringFromWasm0(arg0, arg1);
-        return addHeapObject(ret);
     };
     imports.wbg.__wbg_new_693216e109162396 = function() {
         var ret = new Error();
@@ -319,9 +315,6 @@ async function init(input) {
     imports.wbg.__wbg_createVertexArray_d59135c0a43c410b = function(arg0) {
         var ret = getObject(arg0).createVertexArray();
         return isLikeNone(ret) ? 0 : addHeapObject(ret);
-    };
-    imports.wbg.__wbg_drawArraysInstanced_a302763ee5a90ec9 = function(arg0, arg1, arg2, arg3, arg4) {
-        getObject(arg0).drawArraysInstanced(arg1 >>> 0, arg2, arg3, arg4);
     };
     imports.wbg.__wbg_uniform1ui_cad2414028b78f0c = function(arg0, arg1, arg2) {
         getObject(arg0).uniform1ui(getObject(arg1), arg2 >>> 0);
@@ -400,6 +393,9 @@ async function init(input) {
     };
     imports.wbg.__wbg_disable_b05e075ae54fa448 = function(arg0, arg1) {
         getObject(arg0).disable(arg1 >>> 0);
+    };
+    imports.wbg.__wbg_drawArrays_5db2f4e6291f7fb2 = function(arg0, arg1, arg2, arg3) {
+        getObject(arg0).drawArrays(arg1 >>> 0, arg2, arg3);
     };
     imports.wbg.__wbg_enable_766e546395da5a5d = function(arg0, arg1) {
         getObject(arg0).enable(arg1 >>> 0);
@@ -485,9 +481,6 @@ async function init(input) {
     imports.wbg.__wbg_getElementById_f3e94458ce77f0d0 = function(arg0, arg1, arg2) {
         var ret = getObject(arg0).getElementById(getStringFromWasm0(arg1, arg2));
         return isLikeNone(ret) ? 0 : addHeapObject(ret);
-    };
-    imports.wbg.__wbg_log_3445347661d4505e = function(arg0) {
-        console.log(getObject(arg0));
     };
     imports.wbg.__wbg_instanceof_HtmlCanvasElement_25d964a0dde6717e = function(arg0) {
         var ret = getObject(arg0) instanceof HTMLCanvasElement;
