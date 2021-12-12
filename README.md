@@ -191,7 +191,7 @@ use limelight::{Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform, a
 use web_sys::WebGl2RenderingContext;
 
 struct Animation {
-    program: Program<VertexDescription>,
+    program: Program<VertexDescription, ()>,
     buffer: Buffer<VertexDescription>,
     uniform: Uniform<[f32; 3]>,
 }
