@@ -1,10 +1,15 @@
+use crate::color::Color;
+use anyhow::Result;
 use limelight::{
     attribute,
+    renderer::Drawable,
+    state::{
+        blending::{BlendFunction, BlendingFactorDest, BlendingFactorSrc},
+        StateDescriptor,
+    },
     webgl::types::{DataType, SizedDataType},
-    AsSizedDataType,
+    AsSizedDataType, Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform,
 };
-
-use crate::color::Color;
 
 #[repr(u32)]
 #[derive(Clone, Copy)]
@@ -24,7 +29,48 @@ impl AsSizedDataType for Orientation {
 
 #[attribute]
 pub struct Hairline {
-    location: f32,
-    color: Color,
-    axis: Orientation,
+    pub location: f32,
+    pub color: Color,
+    pub orientation: Orientation,
+}
+
+pub struct HairlineLayer {
+    lines: Buffer<Hairline>,
+    program: Program<(), Hairline>,
+}
+
+impl HairlineLayer {
+    pub fn new(transform: Uniform<[[f32; 4]; 4]>) -> Self {
+        let program = Program::new(
+            include_str!("shader.vert"),
+            include_str!("shader.frag"),
+            DrawMode::TriangleStrip,
+        )
+        .with_state(StateDescriptor {
+            blend_func: Some(BlendFunction {
+                source_factor: BlendingFactorSrc::One,
+                dst_factor: BlendingFactorDest::OneMinusSrcAlpha,
+                ..Default::default()
+            }),
+            ..Default::default()
+        })
+        .with_uniform("u_transform", transform);
+
+        HairlineLayer {
+            lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),
+            program,
+        }
+    }
+
+    pub fn buffer(&self) -> Buffer<Hairline> {
+        self.lines.clone()
+    }
+}
+
+impl Drawable for HairlineLayer {
+    fn draw(&mut self, renderer: &mut limelight::Renderer) -> Result<()> {
+        renderer.render_instanced(&mut self.program, &DummyBuffer::new(4), &self.lines)?;
+
+        Ok(())
+    }
 }

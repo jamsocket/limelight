@@ -1,16 +1,17 @@
 use limelight::{renderer::Drawable, Renderer};
-use limelight_primitives::{Circle, CircleLayer, Color, Line, LineLayer, Rect, RectLayer};
+use limelight_primitives::{Circle, CircleLayer, Color, Line, LineLayer, Rect, RectLayer, HairlineLayer, Hairline, Orientation};
 use limelight_transform::TransformUniform;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;
 
 fn render_primitives(gl: WebGl2RenderingContext) {
     let transform = TransformUniform::new();
-    let mut line_layer = LineLayer::new(transform.uniform());
-    let mut rect_layer = RectLayer::new(transform.uniform());
-    let mut circle_layer = CircleLayer::new(transform.uniform());
+    let mut lines = LineLayer::new(transform.uniform());
+    let mut rects = RectLayer::new(transform.uniform());
+    let mut circles = CircleLayer::new(transform.uniform());
+    let mut hairlines = HairlineLayer::new(transform.uniform());
 
-    line_layer.buffer().set_data(vec![
+    lines.buffer().set_data(vec![
         Line {
             start: [0., 0.],
             end: [0.4, 0.9],
@@ -25,7 +26,7 @@ fn render_primitives(gl: WebGl2RenderingContext) {
         },
     ]);
 
-    rect_layer.buffer().set_data(vec![
+    rects.buffer().set_data(vec![
         Rect {
             lower_right: [-0.3, 0.1],
             upper_left: [-0.8, 0.2],
@@ -43,7 +44,7 @@ fn render_primitives(gl: WebGl2RenderingContext) {
         },
     ]);
 
-    circle_layer.buffer().set_data(vec![
+    circles.buffer().set_data(vec![
         Circle {
             position: [0.3, 0.3],
             radius: 0.1,
@@ -56,10 +57,34 @@ fn render_primitives(gl: WebGl2RenderingContext) {
         },
     ]);
 
+    hairlines.buffer().set_data(vec![
+        Hairline {
+            orientation: Orientation::Horizontal,
+            location: 0.65,
+            color: palette::named::RED.into(),
+        },
+        Hairline {
+            orientation: Orientation::Vertical,
+            location: 0.65,
+            color: palette::named::DARKBLUE.into(),
+        },
+        Hairline {
+            orientation: Orientation::Vertical,
+            location: 0.7,
+            color: palette::named::DARKCYAN.into(),
+        },
+        Hairline {
+            orientation: Orientation::Vertical,
+            location: 0.75,
+            color: palette::named::DARKMAGENTA.into(),
+        },
+    ]);
+
     let mut renderer = Renderer::new(gl);
-    line_layer.draw(&mut renderer).unwrap();
-    rect_layer.draw(&mut renderer).unwrap();
-    circle_layer.draw(&mut renderer).unwrap();
+    lines.draw(&mut renderer).unwrap();
+    rects.draw(&mut renderer).unwrap();
+    circles.draw(&mut renderer).unwrap();
+    hairlines.draw(&mut renderer).unwrap();
 }
 
 fn get_gl() -> WebGl2RenderingContext {
