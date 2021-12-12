@@ -228,11 +228,15 @@ impl Component for Model {
                     self.link.callback(Msg::Render),
                 ));
             }
-            Msg::KeyDown(k) => match k.key().deref() {
-                "ArrowUp" => self.paddle_direction = 1.,
-                "ArrowDown" => self.paddle_direction = -1.,
-                _ => (),
-            },
+            Msg::KeyDown(k) => {
+                match k.key().deref() {
+                    "ArrowUp" => self.paddle_direction = 1.,
+                    "ArrowDown" => self.paddle_direction = -1.,
+                    _ => (),
+                }
+
+                k.prevent_default();
+            }
             Msg::KeyUp(_) => {
                 self.paddle_direction = 0.;
             }
