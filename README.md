@@ -52,8 +52,8 @@ fn render_triangle(gl: WebGl2RenderingContext) {
   // Create a shader program by passing in GLSL code as strings for
   // the fragment and vertex shaders.
   let mut program = Program::new(
-      include_str!("../../examples/01-triangle/shaders/shader.frag"),
       include_str!("../../examples/01-triangle/shaders/shader.vert"),
+      include_str!("../../examples/01-triangle/shaders/shader.frag"),
       DrawMode::Triangles
   );
 
@@ -99,8 +99,8 @@ impl VertexDescription {
 
 fn render_triangles(gl: WebGl2RenderingContext) {
   let mut program = Program::new(
-      include_str!("../../examples/02-buffer/shaders/shader.frag"),
       include_str!("../../examples/02-buffer/shaders/shader.vert"),
+      include_str!("../../examples/02-buffer/shaders/shader.frag"),
       DrawMode::Triangles
   );
 
@@ -151,8 +151,8 @@ fn render_triangles_with_uniform(gl: WebGl2RenderingContext) {
     let color_uniform = Uniform::new([0.9, 0.2, 0.3]);
 
     let mut program = Program::new(
-      include_str!("../../examples/03-uniform/shaders/shader.frag"),
       include_str!("../../examples/03-uniform/shaders/shader.vert"),
+      include_str!("../../examples/03-uniform/shaders/shader.frag"),
       DrawMode::Triangles,
     )
     // We need to map the uniforms when we create the program.
@@ -202,8 +202,8 @@ impl Animation {
         let uniform = Uniform::new([0., 0., 0.]);
 
         let program = Program::new(
-            include_str!("../../examples/04-animate/shaders/shader.frag"),
             include_str!("../../examples/04-animate/shaders/shader.vert"),
+            include_str!("../../examples/04-animate/shaders/shader.frag"),
             DrawMode::Triangles,
         )
         // Note that we clone uniform, so that we can retain a handle to it.

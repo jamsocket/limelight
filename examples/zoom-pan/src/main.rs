@@ -31,8 +31,8 @@ impl Scene {
         let transform = TransformUniform::new();
 
         let program = Program::new(
-            include_str!("../shaders/shader.frag"),
             include_str!("../shaders/shader.vert"),
+            include_str!("../shaders/shader.frag"),
             DrawMode::Triangles,
         )
         .with_uniform("u_transform", transform.uniform());

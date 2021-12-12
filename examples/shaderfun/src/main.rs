@@ -29,8 +29,8 @@ impl Component for Model {
         let pos_uniform = Uniform::new([0.0, 0.0]);
 
         let program = Program::new(
-            include_str!("../shaders/shader.frag"),
             include_str!("../shaders/shader.vert"),
+            include_str!("../shaders/shader.frag"),
             DrawMode::Triangles,
         )
         .with_uniform("u_time", time_uniform.clone())

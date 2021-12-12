@@ -10,8 +10,8 @@ fn render_triangle(gl: WebGl2RenderingContext) {
     // Create a shader program by passing in GLSL code as strings for
     // the fragment and vertex shaders.
     let mut program = Program::new(
-        include_str!("../shaders/shader.frag"),
         include_str!("../shaders/shader.vert"),
+        include_str!("../shaders/shader.frag"),
         DrawMode::Triangles,
     );
 

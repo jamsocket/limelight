@@ -93,8 +93,8 @@ pub enum Program<T: Attribute> {
 
 impl<T: Attribute> Program<T> {
     pub fn new(
-        fragment_shader_source: &str,
         vertex_shader_source: &str,
+        fragment_shader_source: &str,
         draw_mode: DrawMode,
     ) -> Self {
         Program::Unbound(UnboundProgram {

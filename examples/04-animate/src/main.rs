@@ -17,8 +17,8 @@ impl Animation {
         let uniform = Uniform::new([0., 0., 0.]);
 
         let program = Program::new(
-            include_str!("../shaders/shader.frag"),
             include_str!("../shaders/shader.vert"),
+            include_str!("../shaders/shader.frag"),
             DrawMode::Triangles,
         )
         .with_uniform("u_color", uniform.clone());

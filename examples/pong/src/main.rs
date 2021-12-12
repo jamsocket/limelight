@@ -177,8 +177,8 @@ impl Component for Model {
             KeyboardService::register_key_up(&yew::utils::window(), link.callback(Msg::KeyUp));
 
         let program = Program::new(
-            include_str!("../shaders/shader.frag"),
             include_str!("../shaders/shader.vert"),
+            include_str!("../shaders/shader.frag"),
             DrawMode::Triangles,
         );
 
