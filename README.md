@@ -250,3 +250,10 @@ impl VertexDescription {
     }
 }
 ```
+
+## More examples
+
+- [Instancing](https://drifting-in-space.github.io/limelight/instances/)
+- [Pong](https://drifting-in-space.github.io/limelight/pong/)
+- [Zooming / panning](https://drifting-in-space.github.io/limelight/zoom-pan/)
+- [Full-canvas shader](https://drifting-in-space.github.io/limelight/zoom-pan/)
