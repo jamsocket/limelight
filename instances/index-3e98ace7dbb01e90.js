@@ -259,7 +259,7 @@ async function load(module, imports) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('index-4d91e4cbb64d732a_bg.wasm', import.meta.url);
+        input = new URL('index-3e98ace7dbb01e90_bg.wasm', import.meta.url);
     }
     const imports = {};
     imports.wbg = {};
@@ -319,6 +319,9 @@ async function init(input) {
     imports.wbg.__wbg_createVertexArray_d59135c0a43c410b = function(arg0) {
         var ret = getObject(arg0).createVertexArray();
         return isLikeNone(ret) ? 0 : addHeapObject(ret);
+    };
+    imports.wbg.__wbg_drawArraysInstanced_a302763ee5a90ec9 = function(arg0, arg1, arg2, arg3, arg4) {
+        getObject(arg0).drawArraysInstanced(arg1 >>> 0, arg2, arg3, arg4);
     };
     imports.wbg.__wbg_uniform1ui_cad2414028b78f0c = function(arg0, arg1, arg2) {
         getObject(arg0).uniform1ui(getObject(arg1), arg2 >>> 0);
@@ -388,9 +391,6 @@ async function init(input) {
     };
     imports.wbg.__wbg_deleteBuffer_de80b51d8166fddb = function(arg0, arg1) {
         getObject(arg0).deleteBuffer(getObject(arg1));
-    };
-    imports.wbg.__wbg_drawArrays_5db2f4e6291f7fb2 = function(arg0, arg1, arg2, arg3) {
-        getObject(arg0).drawArrays(arg1 >>> 0, arg2, arg3);
     };
     imports.wbg.__wbg_enableVertexAttribArray_91da8d3cbe0c2bbd = function(arg0, arg1) {
         getObject(arg0).enableVertexAttribArray(arg1 >>> 0);
