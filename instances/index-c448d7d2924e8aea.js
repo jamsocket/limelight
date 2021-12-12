@@ -259,7 +259,7 @@ async function load(module, imports) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('index-3e98ace7dbb01e90_bg.wasm', import.meta.url);
+        input = new URL('index-c448d7d2924e8aea_bg.wasm', import.meta.url);
     }
     const imports = {};
     imports.wbg = {};
