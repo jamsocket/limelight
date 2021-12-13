@@ -1,12 +1,6 @@
-use std::ops::Deref;
-
+use anyhow::Result;
 use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlCanvasElement, KeyboardEvent, WebGl2RenderingContext};
-use yew::services::keyboard::KeyListenerHandle;
-use yew::services::render::RenderTask;
-use yew::services::{KeyboardService, RenderService};
-use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
+use limelight_yew::{LimelightComponent, LimelightController, ShouldRequestAnimationFrame, KeyCode};
 
 #[attribute]
 struct VertexDescription {
@@ -145,36 +139,45 @@ impl Default for GameState {
     }
 }
 
-enum Msg {
-    Render(f64),
-    KeyDown(KeyboardEvent),
-    KeyUp(KeyboardEvent),
-}
-
-struct Model {
-    link: ComponentLink<Self>,
+struct PongGame {
     buffer: Buffer<VertexDescription>,
-    canvas_ref: NodeRef,
-    renderer: Option<Renderer>,
     program: Program<VertexDescription, ()>,
-    render_handle: Option<RenderTask>,
     state: GameState,
     paddle_direction: f32,
-    _key_down_handle: KeyListenerHandle,
-    _key_up_handle: KeyListenerHandle,
 }
 
-impl Component for Model {
-    type Message = Msg;
-    type Properties = ();
+impl LimelightController for PongGame {
+    fn draw(&mut self, renderer: &mut Renderer, _: f64) -> Result<ShouldRequestAnimationFrame> {
+        self.state.move_paddle(self.paddle_direction);
+        self.state.step();
+        self.buffer.set_data(self.state.as_quads());
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        renderer.render(&mut self.program, &self.buffer).unwrap();
+
+        Ok(true)
+    }
+
+    fn handle_key_down(&mut self, key: KeyCode) -> ShouldRequestAnimationFrame {
+        match key {
+            KeyCode::ArrowUp => self.paddle_direction = -1.,
+            KeyCode::ArrowDown => self.paddle_direction = 1.,
+            _ => ()
+        }
+
+        false
+    }
+
+    fn handle_key_up(&mut self, _: KeyCode) -> ShouldRequestAnimationFrame {
+        self.paddle_direction = 0.;
+        
+        false
+    }
+}
+
+impl Default for PongGame {
+    fn default() -> Self {
         let buffer = Buffer::new(vec![], BufferUsageHint::DynamicDraw);
         let state = GameState::default();
-        let key_down_handle =
-            KeyboardService::register_key_down(&yew::utils::window(), link.callback(Msg::KeyDown));
-        let key_up_handle =
-            KeyboardService::register_key_up(&yew::utils::window(), link.callback(Msg::KeyUp));
 
         let program = Program::new(
             include_str!("../shaders/shader.vert"),
@@ -183,83 +186,16 @@ impl Component for Model {
         );
 
         Self {
-            link,
             buffer,
-            canvas_ref: NodeRef::default(),
-            render_handle: None,
-            renderer: None,
             program,
             state,
-            _key_down_handle: key_down_handle,
-            _key_up_handle: key_up_handle,
             paddle_direction: 0.,
-        }
-    }
-
-    fn rendered(&mut self, _first_render: bool) {
-        let canvas = self.canvas_ref.cast::<HtmlCanvasElement>().unwrap();
-
-        let gl: WebGl2RenderingContext = canvas
-            .get_context("webgl2")
-            .unwrap()
-            .unwrap()
-            .dyn_into()
-            .unwrap();
-
-        self.renderer = Some(Renderer::new(gl));
-
-        self.render_handle = Some(RenderService::request_animation_frame(
-            self.link.callback(Msg::Render),
-        ));
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Render(_) => {
-                self.state.move_paddle(self.paddle_direction);
-                self.state.step();
-                self.buffer.set_data(self.state.as_quads());
-
-                if let Some(renderer) = self.renderer.as_mut() {
-                    renderer.render(&mut self.program, &self.buffer).unwrap();
-                }
-
-                self.render_handle = Some(RenderService::request_animation_frame(
-                    self.link.callback(Msg::Render),
-                ));
-            }
-            Msg::KeyDown(k) => {
-                match k.key().deref() {
-                    "ArrowUp" => self.paddle_direction = 1.,
-                    "ArrowDown" => self.paddle_direction = -1.,
-                    _ => (),
-                }
-
-                k.prevent_default();
-            }
-            Msg::KeyUp(_) => {
-                self.paddle_direction = 0.;
-            }
-        }
-
-        false
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        html! {
-            <canvas
-                height="900"
-                width="900"
-                ref={self.canvas_ref.clone()} />
         }
     }
 }
 
 fn main() {
     console_error_panic_hook::set_once();
-    yew::start_app::<Model>();
+    wasm_logger::init(wasm_logger::Config::default());
+    yew::start_app::<LimelightComponent<PongGame>>();
 }

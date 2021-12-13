@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-console_error_panic_hook = "0.1.6"
-wasm-bindgen = "0.2.78"
-web-sys = { version="0.3.55", features=["Window"] }
-limelight = { path="../../limelight" }
+anyhow = "1.0.51"
 bytemuck = "1.7.2"
-yew = "0.18.0"
+console_error_panic_hook = "0.1.6"
+limelight = { path="../../limelight" }
+limelight-yew = {path="../../yew"}
+wasm-bindgen = "0.2.78"
 wasm-logger = "0.2.0"
+web-sys = { version="0.3.55", features=["Window"] }
+yew = "0.19.3"

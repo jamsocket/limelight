@@ -9,4 +9,8 @@ wasm-bindgen = "0.2.78"
 web-sys = { version="0.3.55", features=["Window"] }
 limelight = { path="../../limelight" }
 bytemuck = "1.7.2"
-yew = "0.18.0"
+limelight-yew = {path="../../yew"}
+yew = "0.19.3"
+anyhow = "1.0.51"
+wasm-logger = "0.2.0"
+log = "0.4.14"

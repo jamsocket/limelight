@@ -1,5 +1,8 @@
 use limelight::{renderer::Drawable, Renderer};
-use limelight_primitives::{Circle, CircleLayer, Color, Line, LineLayer, Rect, RectLayer, HairlineLayer, Hairline, Orientation};
+use limelight_primitives::{
+    Circle, CircleLayer, Color, Hairline, HairlineLayer, Line, LineLayer, Orientation, Rect,
+    RectLayer,
+};
 use limelight_transform::TransformUniform;
 use wasm_bindgen::JsCast;
 use web_sys::WebGl2RenderingContext;

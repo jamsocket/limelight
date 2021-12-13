@@ -47,8 +47,13 @@ impl BufferBindingGroup {
             for attribute in T::describe() {
                 if let Some(program_binding) = self.attributes.get(&attribute.variable_name) {
                     if attribute.kind != program_binding.kind.as_sized_type() {
-                        log::warn!("The variable {} has type {:?} as an attribute, but {:?} in the program definition.",
-                            attribute.variable_name, attribute.kind, program_binding.kind);
+                        log::warn!(
+                            "The variable {} has type {:?} as an attribute, \
+                            but {:?} in the program definition.",
+                            attribute.variable_name,
+                            attribute.kind,
+                            program_binding.kind
+                        );
                     }
 
                     bindings.push(BufferBinding {
