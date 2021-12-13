@@ -6,5 +6,9 @@ edition = "2021"
 [dependencies]
 console_error_panic_hook = "0.1.6"
 wasm-bindgen = "0.2.74"
-web-sys = "0.3.51"
+web-sys = { version="0.3.55", features = [
+  'HtmlCanvasElement',
+  'Window',
+  'Document',
+] }
 limelight = { path="../../limelight" }
