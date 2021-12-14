@@ -1,7 +1,7 @@
+use anyhow::Result;
 use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use limelight_transform::TransformUniform;
 use limelight_yew::{LimelightComponent, LimelightController};
-use anyhow::Result;
 
 struct ZoomPan {
     program: Program<VertexDescription, ()>,
@@ -40,7 +40,11 @@ impl Default for ZoomPan {
 }
 
 impl LimelightController for ZoomPan {
-    fn draw(&mut self, renderer: &mut Renderer, _ts: f64) -> Result<limelight_yew::ShouldRequestAnimationFrame> {
+    fn draw(
+        &mut self,
+        renderer: &mut Renderer,
+        _ts: f64,
+    ) -> Result<limelight_yew::ShouldRequestAnimationFrame> {
         renderer.render(&mut self.program, &self.buffer)?;
         Ok(false)
     }
@@ -50,7 +54,23 @@ impl LimelightController for ZoomPan {
         true
     }
 
-    fn handle_zoom(&mut self, amount: f32, x: f32, y: f32) -> limelight_yew::ShouldRequestAnimationFrame {
+    fn handle_scroll(
+        &mut self,
+        x_amount: f32,
+        y_amount: f32,
+        _x_position: f32,
+        _y_position: f32,
+    ) -> limelight_yew::ShouldRequestAnimationFrame {
+        self.transform.pan((x_amount, y_amount));
+        true
+    }
+
+    fn handle_zoom(
+        &mut self,
+        amount: f32,
+        x: f32,
+        y: f32,
+    ) -> limelight_yew::ShouldRequestAnimationFrame {
         let scale_factor = 1. + amount / 100.;
         self.transform.scale(scale_factor, (x, y));
         true

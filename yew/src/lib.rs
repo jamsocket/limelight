@@ -28,7 +28,13 @@ pub trait LimelightController: 'static {
         false
     }
 
-    fn handle_scroll(&mut self, x: f32, y: f32) -> ShouldRequestAnimationFrame {
+    fn handle_scroll(
+        &mut self,
+        x_amount: f32,
+        y_amount: f32,
+        x_position: f32,
+        y_position: f32,
+    ) -> ShouldRequestAnimationFrame {
         false
     }
 
@@ -161,15 +167,27 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                 }
             }
             Msg::MouseWheel(e) => {
-                let scroll_amount = e.delta_y() as f32;
+                let scroll_amount_y = e.delta_y() as f32;
+                let scroll_amount_x = e.delta_x() as f32;
 
                 let pin_x = (2 * e.offset_x()) as f32 / ctx.props().width as f32 - 1.;
                 let pin_y = -((2 * e.offset_y()) as f32 / ctx.props().height as f32 - 1.);
 
-                let should_render =
-                    (*ctx.props().controller)
-                        .borrow_mut()
-                        .handle_zoom(scroll_amount, pin_x, pin_y);
+                let should_render = if e.ctrl_key() {
+                    (*ctx.props().controller).borrow_mut().handle_zoom(
+                        -scroll_amount_y,
+                        pin_x,
+                        pin_y,
+                    )
+                } else {
+                    (*ctx.props().controller).borrow_mut().handle_scroll(
+                        -scroll_amount_x as f32 * 2. / ctx.props().width as f32,
+                        scroll_amount_y as f32 * 2. / ctx.props().height as f32,
+                        pin_x,
+                        pin_y,
+                    )
+                };
+
                 if should_render {
                     self.request_render(ctx);
                 }
