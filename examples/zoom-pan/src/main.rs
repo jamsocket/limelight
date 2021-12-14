@@ -65,7 +65,7 @@ impl LimelightController for ZoomPan {
         true
     }
 
-    fn handle_zoom(
+    fn handle_pinch(
         &mut self,
         amount: f32,
         x: f32,

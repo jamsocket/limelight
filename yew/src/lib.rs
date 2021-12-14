@@ -38,7 +38,7 @@ pub trait LimelightController: 'static {
         false
     }
 
-    fn handle_zoom(&mut self, amount: f32, x: f32, y: f32) -> ShouldRequestAnimationFrame {
+    fn handle_pinch(&mut self, amount: f32, x: f32, y: f32) -> ShouldRequestAnimationFrame {
         false
     }
 }
@@ -174,7 +174,7 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                 let pin_y = -((2 * e.offset_y()) as f32 / ctx.props().height as f32 - 1.);
 
                 let should_render = if e.ctrl_key() {
-                    (*ctx.props().controller).borrow_mut().handle_zoom(
+                    (*ctx.props().controller).borrow_mut().handle_pinch(
                         -scroll_amount_y,
                         pin_x,
                         pin_y,
