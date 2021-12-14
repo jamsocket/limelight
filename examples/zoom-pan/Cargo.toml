@@ -14,4 +14,7 @@ web-sys = { version="0.3.55", features = [
 limelight = { path="../../limelight" }
 limelight-transform = { path="../../transform" }
 bytemuck = "1.7.2"
-yew = "0.18.0"
+wasm-logger = "0.2.0"
+limelight-yew = {path="../../yew"}
+anyhow = "1.0.51"
+yew = "0.19.3"

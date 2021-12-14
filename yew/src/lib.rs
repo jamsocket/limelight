@@ -24,15 +24,15 @@ pub trait LimelightController: 'static {
         false
     }
 
-    fn handle_drag(&mut self, x: u32, y: u32) -> ShouldRequestAnimationFrame {
+    fn handle_drag(&mut self, x: f32, y: f32) -> ShouldRequestAnimationFrame {
         false
     }
 
-    fn handle_scroll(&mut self, x: u32, y: u32) -> ShouldRequestAnimationFrame {
+    fn handle_scroll(&mut self, x: f32, y: f32) -> ShouldRequestAnimationFrame {
         false
     }
 
-    fn handle_zoom(&mut self, amount: u32) -> ShouldRequestAnimationFrame {
+    fn handle_zoom(&mut self, amount: f32, x: f32, y: f32) -> ShouldRequestAnimationFrame {
         false
     }
 }
@@ -43,6 +43,7 @@ pub struct LimelightComponent<Controller: LimelightController> {
     render_handle: Option<AnimationFrame>,
     keydown_handler: Option<EventListener>,
     keyup_handler: Option<EventListener>,
+    drag_origin: Option<(i32, i32)>,
     _ph: PhantomData<Controller>,
 }
 
@@ -60,8 +61,8 @@ pub enum Msg {
 #[derive(Properties)]
 pub struct ControllerProps<Controller: LimelightController> {
     controller: Rc<RefCell<Controller>>,
-    height: u32,
-    width: u32,
+    height: i32,
+    width: i32,
 }
 
 impl<Controller: LimelightController> Default for ControllerProps<Controller>
@@ -102,6 +103,7 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
             render_handle: None,
             keydown_handler: None,
             keyup_handler: None,
+            drag_origin: None,
             _ph: PhantomData::default(),
         }
     }
@@ -136,7 +138,44 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                     self.request_render(ctx);
                 }
             }
-            e => log::info!("Unhandled event {:?}", e),
+            Msg::MouseDown(e) => {
+                self.drag_origin = Some((e.offset_x(), e.offset_y()));
+            }
+            Msg::MouseUp(_) => {
+                self.drag_origin = None;
+            }
+            Msg::MouseMove(e) => {
+                if let Some((origin_x, origin_y)) = self.drag_origin {
+                    let (new_x, new_y) = (e.offset_x(), e.offset_y());
+
+                    let should_render = (*ctx.props().controller).borrow_mut().handle_drag(
+                        2. * (new_x - origin_x) as f32 / ctx.props().width as f32,
+                        2. * -(new_y - origin_y) as f32 / ctx.props().height as f32,
+                    );
+
+                    if should_render {
+                        self.request_render(ctx);
+                    }
+
+                    self.drag_origin = Some((new_x, new_y));
+                }
+            }
+            Msg::MouseWheel(e) => {
+                let scroll_amount = e.delta_y() as f32;
+
+                let pin_x = (2 * e.offset_x()) as f32 / ctx.props().width as f32 - 1.;
+                let pin_y = -((2 * e.offset_y()) as f32 / ctx.props().height as f32 - 1.);
+
+                let should_render =
+                    (*ctx.props().controller)
+                        .borrow_mut()
+                        .handle_zoom(scroll_amount, pin_x, pin_y);
+                if should_render {
+                    self.request_render(ctx);
+                }
+
+                e.prevent_default();
+            }
         }
 
         false
