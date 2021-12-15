@@ -6,6 +6,19 @@ pub struct Uniform<T: UniformValueType> {
     value: Rc<RefCell<T>>,
 }
 
+impl Uniform<[[f32; 4]; 4]> {
+    pub fn identity() -> Uniform<[[f32; 4]; 4]> {
+        let value = [
+            [1., 0., 0., 0.],
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.],
+        ];
+
+        Uniform::new(value)
+    }
+}
+
 impl<T: UniformValueType> Uniform<T> {
     pub fn new(value: T) -> Uniform<T> {
         Uniform {

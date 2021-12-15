@@ -15,6 +15,8 @@ Specifically, it:
 - Provides abstractions for buffers and uniforms that **defer GPU data transfer until the next draw cycle**.
 - Provides a **typed interface to uniforms and buffers**, and automatically generates bindings
   between shader attributes and Rust `struct`s through a derive macro.
+- Provides an **interface for transforms** like zoom and pan through [`limelight-transform`](https://github.com/drifting-in-space/limelight/tree/main/transform).
+- Provides 2D **shape primitives** like circles and lines through [`limelight-primitives`](https://github.com/drifting-in-space/limelight/tree/main/primitives).
 
 ## Getting started
 

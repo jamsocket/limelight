@@ -41,10 +41,10 @@ impl Default for Primitives {
         let fg_transform = TransformUniform::new();
         let bg_transform = TransformUniform::new();
 
-        let lines = LineLayer::new(bg_transform.uniform());
-        let rects = RectLayer::new(bg_transform.uniform());
-        let circles = CircleLayer::new(fg_transform.uniform());
-        let hairlines = HairlineLayer::new(fg_transform.uniform());
+        let lines = LineLayer::new_transform(bg_transform.uniform());
+        let rects = RectLayer::new_transform(bg_transform.uniform());
+        let circles = CircleLayer::new_transform(fg_transform.uniform());
+        let hairlines = HairlineLayer::new_transform(fg_transform.uniform());
     
         lines.buffer().set_data(vec![
             Line {

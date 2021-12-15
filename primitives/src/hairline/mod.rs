@@ -40,7 +40,11 @@ pub struct HairlineLayer {
 }
 
 impl HairlineLayer {
-    pub fn new(transform: Uniform<[[f32; 4]; 4]>) -> Self {
+    pub fn new() -> Self {
+        Self::new_transform(Uniform::identity())
+    }
+    
+    pub fn new_transform(transform: Uniform<[[f32; 4]; 4]>) -> Self {
         let program = Program::new(
             include_str!("shader.vert"),
             include_str!("shader.frag"),
