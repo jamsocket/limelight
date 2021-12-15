@@ -4,7 +4,7 @@ use limelight_primitives::{
     RectLayer,
 };
 use limelight_transform::TransformUniform;
-use limelight_yew::{LimelightController, LimelightComponent};
+use limelight_yew::{LimelightController, LimelightComponent, ShouldRequestAnimationFrame};
 use anyhow::Result;
 
 struct Primitives {
@@ -14,7 +14,7 @@ struct Primitives {
 }
 
 impl LimelightController for Primitives {
-    fn draw(&mut self, renderer: &mut Renderer, _ts: f64) -> Result<limelight_yew::ShouldRequestAnimationFrame> {
+    fn draw(&mut self, renderer: &mut Renderer, _ts: f64) -> Result<ShouldRequestAnimationFrame> {
         for layer in self.layers.iter_mut() {
             layer.draw(renderer)?;
         }
@@ -22,13 +22,13 @@ impl LimelightController for Primitives {
         Ok(false)
     }
 
-    fn handle_drag(&mut self, x: f32, y: f32) -> limelight_yew::ShouldRequestAnimationFrame {
+    fn handle_drag(&mut self, x: f32, y: f32) -> ShouldRequestAnimationFrame {
         self.fg_transform.pan((x, y));
         self.bg_transform.shear((x, y));
         true
     }
 
-    fn handle_scroll(&mut self, _x_amount: f32, y_amount: f32, x_position: f32, y_position: f32) -> limelight_yew::ShouldRequestAnimationFrame {
+    fn handle_scroll(&mut self, _x_amount: f32, y_amount: f32, x_position: f32, y_position: f32) -> ShouldRequestAnimationFrame {
         self.fg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
         self.bg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
         true
