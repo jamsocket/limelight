@@ -5,8 +5,7 @@
 [![docs.rs](https://img.shields.io/badge/docs-release-brightgreen)](https://docs.rs/limelight/)
 [![Rust](https://github.com/drifting-in-space/limelight/actions/workflows/rust.yml/badge.svg)](https://github.com/drifting-in-space/limelight/actions/workflows/rust.yml)
 
-Limelight is a `WebGL2` wrapper with a focus on making high-performance WebAssembly graphics code easier to
-write and maintain.
+Limelight is a `WebGL2` wrapper with a focus on making high-performance WebAssembly graphics code easier to write and maintain.
 
 Specifically, it:
 - Provides a functional interface that **abstracts away the statefulness of WebGL**.
@@ -20,13 +19,13 @@ Specifically, it:
 
 # Getting started
 
-[![Abstract art made from circles and rectangles.](https://github.com/drifting-in-space/limelight/raw/main/assets/05-primitives.png)](https://drifting-in-space.github.io/limelight/05-primitives/)
+<a href="https://drifting-in-space.github.io/limelight/05-primitives/"><img style="max-width: 300px;" src="https://github.com/drifting-in-space/limelight/raw/main/assets/05-primitives.png" alt="Abstract art made from circles and rectangles." /></a>
 
 ([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/05-primitives),
 [demo](https://drifting-in-space.github.io/limelight/05-primitives/))
 
 This example uses [`limelight-primitives`](https://github.com/drifting-in-space/limelight/tree/main/primitives)
-and [`limelight-yew`](https://github.com/drifting-in-space/limelight/tree/main/yew) to construct a static image
+and [`limelight-yew`](https://github.com/drifting-in-space/limelight/tree/main/yew) to construct a basic, static image
 made from circles and rectangles.
 
 ```rust

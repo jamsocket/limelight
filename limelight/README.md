@@ -1,5 +1,10 @@
 # `limelight`
 
+[![GitHub Repo stars](https://img.shields.io/github/stars/drifting-in-space/limelight?style=social)](https://github.com/drifting-in-space/limelight)
+[![crates.io](https://img.shields.io/crates/v/limelight.svg)](https://crates.io/crates/limelight)
+[![docs.rs](https://img.shields.io/badge/docs-release-brightgreen)](https://docs.rs/limelight/)
+[![Rust](https://github.com/drifting-in-space/limelight/actions/workflows/rust.yml/badge.svg)](https://github.com/drifting-in-space/limelight/actions/workflows/rust.yml)
+
 This crate provides two layers of abstraction on top of WebGL. The first is the **shadow GPU** layer,
 which abstracts away the statefulness of WebGL to provide a more function- and data-oriented interface.
 The second layer is the `Renderer` API, which provides a typed interface on top of the (untyped)
