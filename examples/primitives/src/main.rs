@@ -25,6 +25,11 @@ impl LimelightController for Primitives {
         self.transform.pan((x, y));
         true
     }
+
+    fn handle_scroll(&mut self, _x_amount: f32, y_amount: f32, x_position: f32, y_position: f32) -> limelight_yew::ShouldRequestAnimationFrame {
+        self.transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
+        true
+    }
 }
 
 impl Default for Primitives {

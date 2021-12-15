@@ -137,10 +137,12 @@ impl BufferHandle {
 
         // The buffer handle has local data, so we need to write it.
         let mut gl_objects = inner.gl_objects.borrow_mut();
-        let data = inner.data.borrow();
+        let mut data = inner.data.borrow_mut();
+        let dirty = data.dirty;
+        data.dirty = false;
 
         if let Some(gl_objects) = &mut *gl_objects {
-            if data.dirty {
+            if dirty {
                 if gl_objects.capacity >= data.data.byte_len() {
                     gl.buffer_sub_data_with_i32_and_u8_array(
                         BufferBindPoint::ArrayBuffer as _,
