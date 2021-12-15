@@ -20,6 +20,7 @@ pub struct Circle {
 pub struct CircleLayer {
     circles: Buffer<Circle>,
     program: Program<(), Circle>,
+    transform: Uniform<[[f32; 4]; 4]>,
 }
 
 impl CircleLayer {
@@ -41,16 +42,21 @@ impl CircleLayer {
             }),
             ..Default::default()
         })
-        .with_uniform("u_transform", transform);
+        .with_uniform("u_transform", transform.clone());
 
         CircleLayer {
             circles: Buffer::new_empty(BufferUsageHint::DynamicDraw),
             program,
+            transform,
         }
     }
 
     pub fn buffer(&self) -> Buffer<Circle> {
         self.circles.clone()
+    }
+
+    pub fn transform(&self) -> Uniform<[[f32; 4]; 4]> {
+        self.transform.clone()
     }
 }
 

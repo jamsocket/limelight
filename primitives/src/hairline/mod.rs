@@ -37,6 +37,7 @@ pub struct Hairline {
 pub struct HairlineLayer {
     lines: Buffer<Hairline>,
     program: Program<(), Hairline>,
+    transform: Uniform<[[f32; 4]; 4]>,
 }
 
 impl HairlineLayer {
@@ -58,16 +59,21 @@ impl HairlineLayer {
             }),
             ..Default::default()
         })
-        .with_uniform("u_transform", transform);
+        .with_uniform("u_transform", transform.clone());
 
         HairlineLayer {
             lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),
             program,
+            transform,
         }
     }
 
     pub fn buffer(&self) -> Buffer<Hairline> {
         self.lines.clone()
+    }
+
+    pub fn transform(&self) -> Uniform<[[f32; 4]; 4]> {
+        self.transform.clone()
     }
 }
 

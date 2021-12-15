@@ -21,6 +21,7 @@ pub struct Rect {
 pub struct RectLayer {
     rects: Buffer<Rect>,
     program: Program<(), Rect>,
+    transform: Uniform<[[f32; 4]; 4]>
 }
 
 impl RectLayer {
@@ -42,12 +43,17 @@ impl RectLayer {
             }),
             ..Default::default()
         })
-        .with_uniform("u_transform", transform);
+        .with_uniform("u_transform", transform.clone());
 
         RectLayer {
             rects: Buffer::new_empty(BufferUsageHint::DynamicDraw),
             program,
+            transform
         }
+    }
+
+    pub fn transform(&self) -> Uniform<[[f32; 4]; 4]> {
+        self.transform.clone()
     }
 
     pub fn buffer(&self) -> Buffer<Rect> {

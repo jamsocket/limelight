@@ -1,6 +1,6 @@
 [package]
 name = "limelight"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 repository = "https://github.com/drifting-in-space/limelight"
 description = "WebGL2 wrapper with a focus on making high-performance graphics code easier to write and maintain"

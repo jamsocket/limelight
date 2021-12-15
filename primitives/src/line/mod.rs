@@ -21,6 +21,7 @@ pub struct Line {
 pub struct LineLayer {
     lines: Buffer<Line>,
     program: Program<(), Line>,
+    transform: Uniform<[[f32; 4]; 4]>,
 }
 
 impl LineLayer {
@@ -42,12 +43,17 @@ impl LineLayer {
             }),
             ..Default::default()
         })
-        .with_uniform("u_transform", transform);
+        .with_uniform("u_transform", transform.clone());
 
         LineLayer {
             lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),
             program,
+            transform
         }
+    }
+
+    pub fn transform(&self) -> Uniform<[[f32; 4]; 4]> {
+        self.transform.clone()
     }
 
     pub fn buffer(&self) -> Buffer<Line> {

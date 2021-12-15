@@ -2,10 +2,15 @@
 name = "limelight-yew"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/drifting-in-space/limelight"
+description = "Scaffolding for creating WebGL2-rendered Yew components with limelight"
+license = "MIT"
+readme = "README.md"
+keywords = ["webgl"]
 
 [dependencies]
 yew = "0.19.3"
-limelight = {path="../limelight"}
+limelight = {version="0.1.3", path="../limelight"}
 web-sys = { version="0.3.55", features=["Window", "HtmlCanvasElement"] }
 wasm-bindgen = "0.2.78"
 gloo-render = "0.1.0"
