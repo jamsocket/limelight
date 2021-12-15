@@ -1,6 +1,6 @@
 use anyhow::Result;
 use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
-use limelight_yew::{LimelightComponent, LimelightController, ShouldRequestAnimationFrame, KeyCode};
+use limelight_yew::{LimelightComponent, LimelightController, ShouldRequestAnimationFrame, KeyCode, ShouldCancelEvent};
 
 #[attribute]
 struct VertexDescription {
@@ -157,20 +157,20 @@ impl LimelightController for PongGame {
         Ok(true)
     }
 
-    fn handle_key_down(&mut self, key: KeyCode) -> ShouldRequestAnimationFrame {
+    fn handle_key_down(&mut self, key: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         match key {
             KeyCode::ArrowUp => self.paddle_direction = -1.,
             KeyCode::ArrowDown => self.paddle_direction = 1.,
-            _ => ()
+            _ => return (false, false)
         }
 
-        false
+        (false, true)
     }
 
-    fn handle_key_up(&mut self, _: KeyCode) -> ShouldRequestAnimationFrame {
+    fn handle_key_up(&mut self, _: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         self.paddle_direction = 0.;
         
-        false
+        (false, true)
     }
 }
 

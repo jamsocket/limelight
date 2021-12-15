@@ -4,7 +4,7 @@ use limelight_primitives::{
     RectLayer,
 };
 use limelight_transform::TransformUniform;
-use limelight_yew::{LimelightController, LimelightComponent, ShouldRequestAnimationFrame};
+use limelight_yew::{LimelightController, LimelightComponent, ShouldRequestAnimationFrame, ShouldCancelEvent};
 use anyhow::Result;
 
 struct Primitives {
@@ -28,10 +28,10 @@ impl LimelightController for Primitives {
         true
     }
 
-    fn handle_scroll(&mut self, _x_amount: f32, y_amount: f32, x_position: f32, y_position: f32) -> ShouldRequestAnimationFrame {
+    fn handle_scroll(&mut self, _x_amount: f32, y_amount: f32, x_position: f32, y_position: f32) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         self.fg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
         self.bg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
-        true
+        (true, true)
     }
 }
 

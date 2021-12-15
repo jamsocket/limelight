@@ -1,7 +1,7 @@
 use anyhow::Result;
 use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use limelight_transform::TransformUniform;
-use limelight_yew::{LimelightComponent, LimelightController};
+use limelight_yew::{LimelightComponent, LimelightController, ShouldCancelEvent, ShouldRequestAnimationFrame};
 
 struct ZoomPan {
     program: Program<VertexDescription, ()>,
@@ -60,9 +60,9 @@ impl LimelightController for ZoomPan {
         y_amount: f32,
         _x_position: f32,
         _y_position: f32,
-    ) -> limelight_yew::ShouldRequestAnimationFrame {
+    ) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         self.transform.pan((x_amount, y_amount));
-        true
+        (true, true)
     }
 
     fn handle_pinch(
@@ -70,10 +70,10 @@ impl LimelightController for ZoomPan {
         amount: f32,
         x: f32,
         y: f32,
-    ) -> limelight_yew::ShouldRequestAnimationFrame {
+    ) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         let scale_factor = 1. + amount / 100.;
         self.transform.scale(scale_factor, (x, y));
-        true
+        (true, true)
     }
 }
 

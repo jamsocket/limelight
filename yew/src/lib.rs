@@ -11,17 +11,18 @@ use web_sys::{window, HtmlCanvasElement, WebGl2RenderingContext};
 use yew::{html, Component, KeyboardEvent, MouseEvent, NodeRef, Properties, WheelEvent};
 
 pub type ShouldRequestAnimationFrame = bool;
+pub type ShouldCancelEvent = bool;
 
 #[allow(unused_variables)]
 pub trait LimelightController: 'static {
     fn draw(&mut self, renderer: &mut Renderer, ts: f64) -> Result<ShouldRequestAnimationFrame>;
 
-    fn handle_key_down(&mut self, key: KeyCode) -> ShouldRequestAnimationFrame {
-        false
+    fn handle_key_down(&mut self, key: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+        (false, false)
     }
 
-    fn handle_key_up(&mut self, key: KeyCode) -> ShouldRequestAnimationFrame {
-        false
+    fn handle_key_up(&mut self, key: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+        (false, false)
     }
 
     fn handle_drag(&mut self, x: f32, y: f32) -> ShouldRequestAnimationFrame {
@@ -38,12 +39,12 @@ pub trait LimelightController: 'static {
         y_amount: f32,
         x_position: f32,
         y_position: f32,
-    ) -> ShouldRequestAnimationFrame {
-        false
+    ) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+        (false, false)
     }
 
-    fn handle_pinch(&mut self, amount: f32, x: f32, y: f32) -> ShouldRequestAnimationFrame {
-        false
+    fn handle_pinch(&mut self, amount: f32, x: f32, y: f32) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+        (false, false)
     }
 }
 
@@ -133,19 +134,25 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                 }
             }
             Msg::KeyDown(event) => {
-                let should_render = (*ctx.props().controller)
+                let (should_render, should_cancel_event) = (*ctx.props().controller)
                     .borrow_mut()
                     .handle_key_down(event.key().as_str().into());
                 if should_render {
                     self.request_render(ctx);
                 }
+                if should_cancel_event {
+                    event.prevent_default();
+                }
             }
             Msg::KeyUp(event) => {
-                let should_render = (*ctx.props().controller)
+                let (should_render, should_cancel_event) = (*ctx.props().controller)
                     .borrow_mut()
                     .handle_key_up(event.key().as_str().into());
                 if should_render {
                     self.request_render(ctx);
+                }
+                if should_cancel_event {
+                    event.prevent_default();
                 }
             }
             Msg::MouseDown(e) => {
@@ -186,7 +193,7 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                 let pin_x = (2 * e.offset_x()) as f32 / ctx.props().width as f32 - 1.;
                 let pin_y = -((2 * e.offset_y()) as f32 / ctx.props().height as f32 - 1.);
 
-                let should_render = if e.ctrl_key() {
+                let (should_render, should_cancel_event) = if e.ctrl_key() {
                     (*ctx.props().controller).borrow_mut().handle_pinch(
                         -scroll_amount_y,
                         pin_x,
@@ -205,7 +212,9 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                     self.request_render(ctx);
                 }
 
-                e.prevent_default();
+                if should_cancel_event {
+                    e.prevent_default();
+                }
             }
         }
 
