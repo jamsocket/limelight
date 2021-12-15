@@ -36,7 +36,7 @@ void main() {
         v_edge = vec2(0., 0.);
     }
 
-    gl_Position = u_transform * gl_Position;
+    gl_Position = gl_Position * u_transform;
 
     v_color = color;
 }

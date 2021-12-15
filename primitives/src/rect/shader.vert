@@ -22,7 +22,7 @@ void main() {
             gl_Position = vec4(lower_right, 0., 1.);
     }
 
-    gl_Position = u_transform * gl_Position;
+    gl_Position = gl_Position * u_transform;
 
     v_color = color;
 }
