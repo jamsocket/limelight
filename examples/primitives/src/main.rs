@@ -9,7 +9,8 @@ use anyhow::Result;
 
 struct Primitives {
     layers: Vec<Box<dyn Drawable>>,
-    transform: TransformUniform,
+    fg_transform: TransformUniform,
+    bg_transform: TransformUniform,
 }
 
 impl LimelightController for Primitives {
@@ -22,12 +23,14 @@ impl LimelightController for Primitives {
     }
 
     fn handle_drag(&mut self, x: f32, y: f32) -> limelight_yew::ShouldRequestAnimationFrame {
-        self.transform.pan((x, y));
+        self.fg_transform.pan((x, y));
+        self.bg_transform.shear((x, y));
         true
     }
 
     fn handle_scroll(&mut self, _x_amount: f32, y_amount: f32, x_position: f32, y_position: f32) -> limelight_yew::ShouldRequestAnimationFrame {
-        self.transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
+        self.fg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
+        self.bg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
         true
     }
 }
@@ -35,12 +38,13 @@ impl LimelightController for Primitives {
 impl Default for Primitives {
     fn default() -> Self {
         let mut layers: Vec<Box<dyn Drawable>> = Vec::new();
-        let transform = TransformUniform::new();
+        let fg_transform = TransformUniform::new();
+        let bg_transform = TransformUniform::new();
 
-        let lines = LineLayer::new(transform.uniform());
-        let rects = RectLayer::new(transform.uniform());
-        let circles = CircleLayer::new(transform.uniform());
-        let hairlines = HairlineLayer::new(transform.uniform());
+        let lines = LineLayer::new(bg_transform.uniform());
+        let rects = RectLayer::new(bg_transform.uniform());
+        let circles = CircleLayer::new(fg_transform.uniform());
+        let hairlines = HairlineLayer::new(fg_transform.uniform());
     
         lines.buffer().set_data(vec![
             Line {
@@ -118,7 +122,8 @@ impl Default for Primitives {
 
         Primitives {
             layers,
-            transform
+            fg_transform,
+            bg_transform,
         }
     }
 }

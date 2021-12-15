@@ -4,17 +4,19 @@ pub struct TransformUniform {
     scale: (f32, f32),
     center: (f32, f32),
     uniform: Uniform<[[f32; 4]; 4]>,
+    shear: (f32, f32),
 }
 
 fn scale_center_to_matrix(
     (scale_x, scale_y): (f32, f32),
     (center_x, center_y): (f32, f32),
+    (shear_x, shear_y): (f32, f32),
 ) -> [[f32; 4]; 4] {
     [
         [scale_x, 0., 0., -center_x],
         [0., scale_y, 0., -center_y],
         [0., 0., 1., 0.],
-        [0., 0., 0., 1.],
+        [shear_x, shear_y, 0., 1.],
     ]
 }
 
@@ -28,10 +30,12 @@ impl TransformUniform {
     pub fn new() -> Self {
         let scale = (1., 1.);
         let center = (0., 0.);
-        let uniform = Uniform::new(scale_center_to_matrix(scale, center));
+        let shear = (0., 0.);
+        let uniform = Uniform::new(scale_center_to_matrix(scale, center, shear));
         TransformUniform {
             scale,
             center,
+            shear,
             uniform,
         }
     }
@@ -42,7 +46,7 @@ impl TransformUniform {
 
     fn update_uniform(&self) {
         self.uniform
-            .set_value(scale_center_to_matrix(self.scale, self.center));
+            .set_value(scale_center_to_matrix(self.scale, self.center, self.shear));
     }
 
     /// Multiply the current scale, in such a way that the given point
@@ -69,6 +73,12 @@ impl TransformUniform {
     pub fn pan(&mut self, vector: (f32, f32)) {
         self.center.0 -= vector.0;
         self.center.1 -= vector.1;
+        self.update_uniform();
+    }
+
+    pub fn shear(&mut self, vector: (f32, f32)) {
+        self.shear.0 -= vector.0;
+        self.shear.1 -= vector.1;
         self.update_uniform();
     }
 }
