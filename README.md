@@ -19,7 +19,7 @@ Specifically, it:
 
 # Getting started
 
-<a href="https://drifting-in-space.github.io/limelight/05-primitives/"><img style="max-width: 300px;" src="https://github.com/drifting-in-space/limelight/raw/main/assets/05-primitives.png" alt="Abstract art made from circles and rectangles." /></a>
+<a href="https://drifting-in-space.github.io/limelight/05-primitives/"><img style="width: 300px;" src="https://github.com/drifting-in-space/limelight/raw/main/assets/05-primitives.png" alt="Abstract art made from circles and rectangles." /></a>
 
 ([full code](https://github.com/drifting-in-space/limelight/tree/main/examples/05-primitives),
 [demo](https://drifting-in-space.github.io/limelight/05-primitives/))
