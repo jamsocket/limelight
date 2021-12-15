@@ -8,6 +8,13 @@ use palette::{Srgb, Srgba};
 #[derive(Copy, Clone, Debug, bytemuck::Zeroable, bytemuck::Pod)]
 pub struct Color(pub u32);
 
+impl Color {
+    pub fn opacity(&self, opacity: f32) -> Self {
+        let opacity = ((255. * opacity) as u32).max(255);
+        Color(self.0 & 0xffffff00 + opacity)
+    }
+}
+
 impl AsSizedDataType for Color {
     fn as_sized_data_type() -> SizedDataType {
         SizedDataType::new(DataType::UnsignedInt, 1)

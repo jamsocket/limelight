@@ -81,13 +81,13 @@ impl Default for Primitives {
     
         circles.buffer().set_data(vec![
             Circle {
-                position: [0.3, 0.3],
-                radius: 0.1,
-                color: palette::named::SALMON.into(),
-            },
-            Circle {
                 position: [-0.2, 0.3],
                 radius: 0.2,
+                color: Color(0x44332266),
+            },
+            Circle {
+                position: [0.3, 0.3],
+                radius: 0.1,
                 color: Color(0x44332266),
             },
         ]);
@@ -101,17 +101,17 @@ impl Default for Primitives {
             Hairline {
                 orientation: Orientation::Vertical,
                 location: 0.65,
-                color: palette::named::DARKBLUE.into(),
+                color: Color::from(palette::named::DARKBLUE).opacity(0.4),
             },
             Hairline {
                 orientation: Orientation::Vertical,
                 location: 0.7,
-                color: palette::named::DARKCYAN.into(),
+                color: Color::from(palette::named::DARKCYAN).opacity(0.3),
             },
             Hairline {
                 orientation: Orientation::Vertical,
                 location: 0.75,
-                color: palette::named::DARKMAGENTA.into(),
+                color: Color::from(palette::named::DARKMAGENTA).opacity(0.2),
             },
         ]);
 
