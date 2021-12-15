@@ -29,7 +29,7 @@ void main() {
             v_coord = vec2(1., 1.);
     }
 
-    gl_Position = u_transform * gl_Position;
+    gl_Position =  gl_Position * u_transform;
 
     v_color = color;
 }

@@ -10,7 +10,7 @@ uniform mat4 u_transform;
 const float THICKNESS = 0.002;
 
 void main() {
-    vec4 scaled = u_transform * vec4(location, location, 0.0, 1.0);
+    vec4 scaled = vec4(location, location, 0.0, 1.0) * u_transform;
 
     if (orientation == 0u) {
         /* Horizontal */

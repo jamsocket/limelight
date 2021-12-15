@@ -28,6 +28,10 @@ pub trait LimelightController: 'static {
         false
     }
 
+    fn handle_mousemove(&mut self, x: f32, y: f32) -> ShouldRequestAnimationFrame {
+        false
+    }
+
     fn handle_scroll(
         &mut self,
         x_amount: f32,
@@ -151,9 +155,9 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                 self.drag_origin = None;
             }
             Msg::MouseMove(e) => {
-                if let Some((origin_x, origin_y)) = self.drag_origin {
-                    let (new_x, new_y) = (e.offset_x(), e.offset_y());
+                let (new_x, new_y) = (e.offset_x(), e.offset_y());
 
+                if let Some((origin_x, origin_y)) = self.drag_origin {
                     let should_render = (*ctx.props().controller).borrow_mut().handle_drag(
                         2. * (new_x - origin_x) as f32 / ctx.props().width as f32,
                         2. * -(new_y - origin_y) as f32 / ctx.props().height as f32,
@@ -164,6 +168,15 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                     }
 
                     self.drag_origin = Some((new_x, new_y));
+                } else {
+                    let should_render = (*ctx.props().controller).borrow_mut().handle_mousemove(
+                        2. * new_x as f32 / ctx.props().width as f32,
+                        2. * -new_y as f32 / ctx.props().height as f32,
+                    );
+
+                    if should_render {
+                        self.request_render(ctx);
+                    }
                 }
             }
             Msg::MouseWheel(e) => {
@@ -202,11 +215,13 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
         let props = ctx.props();
         let link = ctx.link();
+        let device_pixel_ratio = window().unwrap().device_pixel_ratio();
 
         html! {
             <canvas
-                height={props.height.to_string()}
-                width={props.width.to_string()}
+                height={(props.height as f64 * device_pixel_ratio).to_string()}
+                width={(props.width as f64 * device_pixel_ratio).to_string()}
+                style={format!("width: {}px; height: {}px;", props.width, props.height)}
                 onmousedown={link.callback(Msg::MouseDown)}
                 onmousemove={link.callback(Msg::MouseMove)}
                 onmouseup={link.callback(Msg::MouseUp)}

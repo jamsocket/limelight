@@ -16,3 +16,6 @@ limelight-primitives = {path="../../primitives"}
 limelight-transform = {path="../../transform"}
 palette = { version = "0.6.0", features = ["named"] }
 wasm-logger = "0.2.0"
+limelight-yew = {path="../../yew"}
+yew = "0.19.3"
+anyhow = "1.0.51"
