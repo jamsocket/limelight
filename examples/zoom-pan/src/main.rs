@@ -1,7 +1,9 @@
 use anyhow::Result;
 use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
 use limelight_transform::TransformUniform;
-use limelight_yew::{LimelightComponent, LimelightController, ShouldCancelEvent, ShouldRequestAnimationFrame};
+use limelight_yew::{
+    LimelightComponent, LimelightController, ShouldCancelEvent, ShouldRequestAnimationFrame,
+};
 
 struct ZoomPan {
     program: Program<VertexDescription, ()>,

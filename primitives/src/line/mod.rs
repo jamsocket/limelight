@@ -24,11 +24,17 @@ pub struct LineLayer {
     transform: Uniform<[[f32; 4]; 4]>,
 }
 
+impl Default for LineLayer {
+    fn default() -> Self {
+        LineLayer::new()
+    }
+}
+
 impl LineLayer {
     pub fn new() -> Self {
         Self::new_transform(Uniform::identity())
     }
-    
+
     pub fn new_transform(transform: Uniform<[[f32; 4]; 4]>) -> Self {
         let program = Program::new(
             include_str!("shader.vert"),
@@ -48,7 +54,7 @@ impl LineLayer {
         LineLayer {
             lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),
             program,
-            transform
+            transform,
         }
     }
 

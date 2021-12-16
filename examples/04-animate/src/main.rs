@@ -1,7 +1,5 @@
 use anyhow::Result;
-use limelight::{
-    attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform,
-};
+use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer, Uniform};
 use limelight_yew::{LimelightComponent, LimelightController, ShouldRequestAnimationFrame};
 
 #[attribute]

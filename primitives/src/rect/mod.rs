@@ -21,14 +21,20 @@ pub struct Rect {
 pub struct RectLayer {
     rects: Buffer<Rect>,
     program: Program<(), Rect>,
-    transform: Uniform<[[f32; 4]; 4]>
+    transform: Uniform<[[f32; 4]; 4]>,
+}
+
+impl Default for RectLayer {
+    fn default() -> Self {
+        RectLayer::new()
+    }
 }
 
 impl RectLayer {
     pub fn new() -> Self {
         Self::new_transform(Uniform::identity())
     }
-    
+
     pub fn new_transform(transform: Uniform<[[f32; 4]; 4]>) -> Self {
         let program = Program::new(
             include_str!("shader.vert"),
@@ -48,7 +54,7 @@ impl RectLayer {
         RectLayer {
             rects: Buffer::new_empty(BufferUsageHint::DynamicDraw),
             program,
-            transform
+            transform,
         }
     }
 

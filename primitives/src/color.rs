@@ -10,8 +10,8 @@ pub struct Color(pub u32);
 
 impl Color {
     pub fn opacity(&self, opacity: f32) -> Self {
-        let opacity = ((255. * opacity) as u32).max(255);
-        Color(self.0 & 0xffffff00 + opacity)
+        let opacity = ((255. * opacity) as u32).min(255);
+        Color(self.0 & (0x00ffffff + (opacity << 24)))
     }
 }
 

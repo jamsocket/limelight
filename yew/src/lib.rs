@@ -17,7 +17,10 @@ pub type ShouldCancelEvent = bool;
 pub trait LimelightController: 'static {
     fn draw(&mut self, renderer: &mut Renderer, ts: f64) -> Result<ShouldRequestAnimationFrame>;
 
-    fn handle_key_down(&mut self, key: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+    fn handle_key_down(
+        &mut self,
+        key: KeyCode,
+    ) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         (false, false)
     }
 
@@ -43,7 +46,12 @@ pub trait LimelightController: 'static {
         (false, false)
     }
 
-    fn handle_pinch(&mut self, amount: f32, x: f32, y: f32) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+    fn handle_pinch(
+        &mut self,
+        amount: f32,
+        x: f32,
+        y: f32,
+    ) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         (false, false)
     }
 }
@@ -257,10 +265,7 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                     &window().unwrap(),
                     "keydown",
                     options,
-                    move |event| {
-                        event.prevent_default();
-                        callback.emit(event.clone().dyn_into().unwrap())
-                    },
+                    move |event| callback.emit(event.clone().dyn_into().unwrap()),
                 ));
             }
             {
@@ -269,10 +274,7 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                     &window().unwrap(),
                     "keyup",
                     options,
-                    move |event| {
-                        event.prevent_default();
-                        callback.emit(event.clone().dyn_into().unwrap())
-                    },
+                    move |event| callback.emit(event.clone().dyn_into().unwrap()),
                 ));
             }
 

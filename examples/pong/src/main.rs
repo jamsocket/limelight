@@ -1,17 +1,11 @@
 use anyhow::Result;
-use limelight::{attribute, Buffer, BufferUsageHint, DrawMode, Program, Renderer};
-use limelight_yew::{LimelightComponent, LimelightController, ShouldRequestAnimationFrame, KeyCode, ShouldCancelEvent};
-
-#[attribute]
-struct VertexDescription {
-    position: [f32; 2],
-}
-
-impl VertexDescription {
-    pub fn new(x: f32, y: f32) -> Self {
-        VertexDescription { position: [x, y] }
-    }
-}
+use limelight::renderer::Drawable;
+use limelight::Renderer;
+use limelight_primitives::{Circle, CircleLayer, Rect, RectLayer};
+use limelight_yew::{
+    KeyCode, LimelightComponent, LimelightController, ShouldCancelEvent,
+    ShouldRequestAnimationFrame,
+};
 
 const UPPER_BOUND: f32 = 1.;
 const LOWER_BOUND: f32 = -1.;
@@ -21,7 +15,7 @@ const RIGHT_BOUND: f32 = 1.;
 const PADDLE_BUFFER: f32 = 0.1;
 
 const PADDLE_HEIGHT: f32 = 0.3;
-const BALL_RADIUS: f32 = 0.05;
+const BALL_RADIUS: f32 = 0.025;
 
 const PADDLE_WIDTH: f32 = 0.05;
 const PADDLE_SPEED: f32 = 0.01;
@@ -32,21 +26,22 @@ struct GameState {
     paddle_position: f32,
     ball_position: [f32; 2],
     ball_direction: [f32; 2],
+    last_time: f64,
 }
 
 impl GameState {
-    fn move_paddle(&mut self, direction: f32) {
-        self.paddle_position += direction * PADDLE_SPEED;
-    }
+    fn step(&mut self, ts: f64, paddle_direction: f32) {
+        let time_delta = ((ts - self.last_time) / 20.) as f32;
+        self.last_time = ts;
 
-    fn step(&mut self) {
+        self.paddle_position += paddle_direction * PADDLE_SPEED * time_delta;
         self.ball_position = [
-            self.ball_position[0] + self.ball_direction[0] * BALL_SPEED,
-            self.ball_position[1] + self.ball_direction[1] * BALL_SPEED,
+            self.ball_position[0] + self.ball_direction[0] * BALL_SPEED * time_delta,
+            self.ball_position[1] + self.ball_direction[1] * BALL_SPEED * time_delta,
         ];
 
         if ((LEFT_BOUND + PADDLE_BUFFER - BALL_SPEED + PADDLE_WIDTH / 2.)
-            ..(LEFT_BOUND + PADDLE_BUFFER + BALL_SPEED + PADDLE_WIDTH / 2.))
+            ..=(LEFT_BOUND + PADDLE_BUFFER + BALL_SPEED + PADDLE_WIDTH / 2.))
             .contains(&self.ball_position[0])
             && ((self.paddle_position - PADDLE_HEIGHT / 2.)
                 ..(self.paddle_position + PADDLE_HEIGHT / 2.))
@@ -56,7 +51,7 @@ impl GameState {
         }
 
         if ((RIGHT_BOUND - PADDLE_BUFFER - BALL_SPEED - PADDLE_WIDTH / 2.)
-            ..(RIGHT_BOUND - PADDLE_BUFFER + BALL_SPEED - PADDLE_WIDTH / 2.))
+            ..=(RIGHT_BOUND - PADDLE_BUFFER + BALL_SPEED - PADDLE_WIDTH / 2.))
             .contains(&self.ball_position[0])
             && ((-self.paddle_position - PADDLE_HEIGHT / 2.)
                 ..(-self.paddle_position + PADDLE_HEIGHT / 2.))
@@ -83,50 +78,6 @@ impl GameState {
             self.ball_direction = [-self.ball_direction[0], self.ball_direction[1]];
         }
     }
-
-    fn as_quads(&self) -> Vec<VertexDescription> {
-        let left_paddle_left = LEFT_BOUND + PADDLE_BUFFER - PADDLE_WIDTH / 2.;
-        let left_paddle_right = LEFT_BOUND + PADDLE_BUFFER + PADDLE_WIDTH / 2.;
-        let left_paddle_top = self.paddle_position + PADDLE_HEIGHT / 2.;
-        let left_paddle_bottom = self.paddle_position - PADDLE_HEIGHT / 2.;
-
-        let right_paddle_left = RIGHT_BOUND - PADDLE_BUFFER - PADDLE_WIDTH / 2.;
-        let right_paddle_right = RIGHT_BOUND - PADDLE_BUFFER + PADDLE_WIDTH / 2.;
-        let right_paddle_top = -self.paddle_position + PADDLE_HEIGHT / 2.;
-        let right_paddle_bottom = -self.paddle_position - PADDLE_HEIGHT / 2.;
-
-        let ball_left = self.ball_position[0] - BALL_RADIUS / 2.;
-        let ball_right = self.ball_position[0] + BALL_RADIUS / 2.;
-        let ball_top = self.ball_position[1] + BALL_RADIUS / 2.;
-        let ball_bottom = self.ball_position[1] - BALL_RADIUS / 2.;
-
-        vec![
-            // Left paddle upper triangle
-            VertexDescription::new(left_paddle_left, left_paddle_top),
-            VertexDescription::new(left_paddle_right, left_paddle_top),
-            VertexDescription::new(left_paddle_left, left_paddle_bottom),
-            // Left paddle lower triangle
-            VertexDescription::new(left_paddle_right, left_paddle_top),
-            VertexDescription::new(left_paddle_right, left_paddle_bottom),
-            VertexDescription::new(left_paddle_left, left_paddle_bottom),
-            // Right paddle upper triangle
-            VertexDescription::new(right_paddle_left, right_paddle_top),
-            VertexDescription::new(right_paddle_right, right_paddle_top),
-            VertexDescription::new(right_paddle_left, right_paddle_bottom),
-            // Right paddle lower triangle
-            VertexDescription::new(right_paddle_right, right_paddle_top),
-            VertexDescription::new(right_paddle_right, right_paddle_bottom),
-            VertexDescription::new(right_paddle_left, right_paddle_bottom),
-            // Ball upper triangle
-            VertexDescription::new(ball_left, ball_top),
-            VertexDescription::new(ball_right, ball_top),
-            VertexDescription::new(ball_left, ball_bottom),
-            // Ball lower triangle
-            VertexDescription::new(ball_right, ball_top),
-            VertexDescription::new(ball_right, ball_bottom),
-            VertexDescription::new(ball_left, ball_bottom),
-        ]
-    }
 }
 
 impl Default for GameState {
@@ -135,61 +86,87 @@ impl Default for GameState {
             paddle_position: 0.,
             ball_direction: [1., 1.],
             ball_position: [0., 0.],
+            last_time: 0.,
         }
     }
 }
 
 struct PongGame {
-    buffer: Buffer<VertexDescription>,
-    program: Program<VertexDescription, ()>,
+    paddles: RectLayer,
+    ball: CircleLayer,
     state: GameState,
     paddle_direction: f32,
 }
 
 impl LimelightController for PongGame {
-    fn draw(&mut self, renderer: &mut Renderer, _: f64) -> Result<ShouldRequestAnimationFrame> {
-        self.state.move_paddle(self.paddle_direction);
-        self.state.step();
-        self.buffer.set_data(self.state.as_quads());
+    fn draw(&mut self, renderer: &mut Renderer, ts: f64) -> Result<ShouldRequestAnimationFrame> {
+        self.state.step(ts, self.paddle_direction);
 
-        renderer.render(&mut self.program, &self.buffer).unwrap();
+        let left_paddle_left = LEFT_BOUND + PADDLE_BUFFER - PADDLE_WIDTH / 2.;
+        let left_paddle_right = LEFT_BOUND + PADDLE_BUFFER + PADDLE_WIDTH / 2.;
+        let left_paddle_top = self.state.paddle_position + PADDLE_HEIGHT / 2.;
+        let left_paddle_bottom = self.state.paddle_position - PADDLE_HEIGHT / 2.;
+
+        let right_paddle_left = RIGHT_BOUND - PADDLE_BUFFER - PADDLE_WIDTH / 2.;
+        let right_paddle_right = RIGHT_BOUND - PADDLE_BUFFER + PADDLE_WIDTH / 2.;
+        let right_paddle_top = -self.state.paddle_position + PADDLE_HEIGHT / 2.;
+        let right_paddle_bottom = -self.state.paddle_position - PADDLE_HEIGHT / 2.;
+
+        self.paddles.buffer().set_data(vec![
+            Rect {
+                upper_left: [left_paddle_left, left_paddle_top],
+                lower_right: [left_paddle_right, left_paddle_bottom],
+                color: palette::named::ORANGERED.into(),
+            },
+            Rect {
+                upper_left: [right_paddle_left, right_paddle_top],
+                lower_right: [right_paddle_right, right_paddle_bottom],
+                color: palette::named::ORANGERED.into(),
+            },
+        ]);
+
+        self.ball.buffer().set_data(vec![Circle {
+            position: self.state.ball_position,
+            radius: BALL_RADIUS,
+            color: palette::named::NAVY.into(),
+        }]);
+
+        self.paddles.draw(renderer)?;
+        self.ball.draw(renderer)?;
 
         Ok(true)
     }
 
-    fn handle_key_down(&mut self, key: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+    fn handle_key_down(
+        &mut self,
+        key: KeyCode,
+    ) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
         match key {
             KeyCode::ArrowUp => self.paddle_direction = -1.,
             KeyCode::ArrowDown => self.paddle_direction = 1.,
-            _ => return (false, false)
+            _ => return (false, false),
         }
 
         (false, true)
     }
 
-    fn handle_key_up(&mut self, _: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
-        self.paddle_direction = 0.;
-        
+    fn handle_key_up(&mut self, key: KeyCode) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+        match key {
+            KeyCode::ArrowUp | KeyCode::ArrowDown => self.paddle_direction = 0.,
+            _ => return (false, false),
+        }
+
         (false, true)
     }
 }
 
 impl Default for PongGame {
     fn default() -> Self {
-        let buffer = Buffer::new(vec![], BufferUsageHint::DynamicDraw);
-        let state = GameState::default();
-
-        let program = Program::new(
-            include_str!("../shaders/shader.vert"),
-            include_str!("../shaders/shader.frag"),
-            DrawMode::Triangles,
-        );
-
         Self {
-            buffer,
-            program,
-            state,
+            state: GameState::default(),
             paddle_direction: 0.,
+            ball: CircleLayer::new(),
+            paddles: RectLayer::new(),
         }
     }
 }

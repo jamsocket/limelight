@@ -144,6 +144,7 @@ impl BufferHandle {
         if let Some(gl_objects) = &mut *gl_objects {
             if dirty {
                 if gl_objects.capacity >= data.data.byte_len() {
+                    gl.bind_buffer(BufferBindPoint::ArrayBuffer as _, Some(&gl_objects.buffer));
                     gl.buffer_sub_data_with_i32_and_u8_array(
                         BufferBindPoint::ArrayBuffer as _,
                         0,

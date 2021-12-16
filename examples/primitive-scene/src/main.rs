@@ -1,11 +1,13 @@
+use anyhow::Result;
 use limelight::{renderer::Drawable, Renderer};
 use limelight_primitives::{
     Circle, CircleLayer, Color, Hairline, HairlineLayer, Line, LineLayer, Orientation, Rect,
     RectLayer,
 };
 use limelight_transform::TransformUniform;
-use limelight_yew::{LimelightController, LimelightComponent, ShouldRequestAnimationFrame, ShouldCancelEvent};
-use anyhow::Result;
+use limelight_yew::{
+    LimelightComponent, LimelightController, ShouldCancelEvent, ShouldRequestAnimationFrame,
+};
 
 struct Primitives {
     layers: Vec<Box<dyn Drawable>>,
@@ -28,9 +30,17 @@ impl LimelightController for Primitives {
         true
     }
 
-    fn handle_scroll(&mut self, _x_amount: f32, y_amount: f32, x_position: f32, y_position: f32) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
-        self.fg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
-        self.bg_transform.scale(1. + y_amount as f32 / 3., (x_position, y_position));
+    fn handle_scroll(
+        &mut self,
+        _x_amount: f32,
+        y_amount: f32,
+        x_position: f32,
+        y_position: f32,
+    ) -> (ShouldRequestAnimationFrame, ShouldCancelEvent) {
+        self.fg_transform
+            .scale(1. + y_amount as f32 / 3., (x_position, y_position));
+        self.bg_transform
+            .scale(1. + y_amount as f32 / 3., (x_position, y_position));
         (true, true)
     }
 }
@@ -45,7 +55,7 @@ impl Default for Primitives {
         let rects = RectLayer::new_transform(bg_transform.uniform());
         let circles = CircleLayer::new_transform(fg_transform.uniform());
         let hairlines = HairlineLayer::new_transform(fg_transform.uniform());
-    
+
         lines.buffer().set_data(vec![
             Line {
                 start: [0., 0.],
@@ -60,7 +70,7 @@ impl Default for Primitives {
                 color: palette::named::FIREBRICK.into(),
             },
         ]);
-    
+
         rects.buffer().set_data(vec![
             Rect {
                 lower_right: [-0.3, 0.1],
@@ -78,7 +88,7 @@ impl Default for Primitives {
                 color: palette::named::ORANGERED.into(),
             },
         ]);
-    
+
         circles.buffer().set_data(vec![
             Circle {
                 position: [-0.2, 0.3],
@@ -88,10 +98,10 @@ impl Default for Primitives {
             Circle {
                 position: [0.3, 0.3],
                 radius: 0.1,
-                color: Color(0x44332266),
+                color: Color(0x66111111),
             },
         ]);
-    
+
         hairlines.buffer().set_data(vec![
             Hairline {
                 orientation: Orientation::Horizontal,

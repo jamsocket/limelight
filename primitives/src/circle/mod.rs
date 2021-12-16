@@ -23,11 +23,17 @@ pub struct CircleLayer {
     transform: Uniform<[[f32; 4]; 4]>,
 }
 
+impl Default for CircleLayer {
+    fn default() -> Self {
+        CircleLayer::new()
+    }
+}
+
 impl CircleLayer {
     pub fn new() -> Self {
         Self::new_transform(Uniform::identity())
     }
-    
+
     pub fn new_transform(transform: Uniform<[[f32; 4]; 4]>) -> Self {
         let program = Program::new(
             include_str!("shader.vert"),
