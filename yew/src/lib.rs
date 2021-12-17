@@ -78,13 +78,13 @@ pub enum Msg {
 }
 
 #[derive(Properties)]
-pub struct ControllerProps<Controller: LimelightController> {
-    controller: Rc<RefCell<Controller>>,
-    height: i32,
-    width: i32,
+pub struct LimelightComponentProps<Controller: LimelightController> {
+    pub controller: Rc<RefCell<Controller>>,
+    pub height: i32,
+    pub width: i32,
 }
 
-impl<Controller: LimelightController> Default for ControllerProps<Controller>
+impl<Controller: LimelightController> Default for LimelightComponentProps<Controller>
 where
     Controller: Default,
 {
@@ -97,7 +97,7 @@ where
     }
 }
 
-impl<Controller: LimelightController> PartialEq for ControllerProps<Controller> {
+impl<Controller: LimelightController> PartialEq for LimelightComponentProps<Controller> {
     fn eq(&self, other: &Self) -> bool {
         Rc::ptr_eq(&self.controller, &other.controller)
     }
@@ -113,7 +113,7 @@ impl<Controller: LimelightController> LimelightComponent<Controller> {
 impl<Controller: LimelightController> Component for LimelightComponent<Controller> {
     type Message = Msg;
 
-    type Properties = ControllerProps<Controller>;
+    type Properties = LimelightComponentProps<Controller>;
 
     fn create(_ctx: &yew::Context<Self>) -> Self {
         Self {
@@ -185,8 +185,8 @@ impl<Controller: LimelightController> Component for LimelightComponent<Controlle
                     self.drag_origin = Some((new_x, new_y));
                 } else {
                     let should_render = (*ctx.props().controller).borrow_mut().handle_mousemove(
-                        2. * new_x as f32 / ctx.props().width as f32,
-                        2. * -new_y as f32 / ctx.props().height as f32,
+                        2. * new_x as f32 / ctx.props().width as f32 - 1.,
+                        2. * -new_y as f32 / ctx.props().height as f32 + 1.,
                     );
 
                     if should_render {
