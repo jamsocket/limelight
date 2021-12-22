@@ -1,4 +1,4 @@
-use crate::color::Color;
+use crate::{color::Color, common::{RelativePosition, identity_quad}};
 use anyhow::Result;
 use limelight::{
     attribute,
@@ -8,7 +8,7 @@ use limelight::{
         StateDescriptor,
     },
     webgl::types::{DataType, SizedDataType},
-    AsSizedDataType, Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform,
+    AsSizedDataType, Buffer, BufferUsageHint, DrawMode, Program, Uniform,
 };
 
 #[repr(u32)]
@@ -42,7 +42,8 @@ impl Default for HairlineLayer {
 
 pub struct HairlineLayer {
     lines: Buffer<Hairline>,
-    program: Program<(), Hairline>,
+    positions: Buffer<RelativePosition>,
+    program: Program<RelativePosition, Hairline>,
     transform: Uniform<[[f32; 4]; 4]>,
 }
 
@@ -69,6 +70,7 @@ impl HairlineLayer {
 
         HairlineLayer {
             lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),
+            positions: Buffer::new(identity_quad(), BufferUsageHint::StaticDraw),
             program,
             transform,
         }
@@ -85,7 +87,7 @@ impl HairlineLayer {
 
 impl Drawable for HairlineLayer {
     fn draw(&mut self, renderer: &mut limelight::Renderer) -> Result<()> {
-        renderer.render_instanced(&mut self.program, &DummyBuffer::new(4), &self.lines)?;
+        renderer.render_instanced(&mut self.program, &self.positions, &self.lines)?;
 
         Ok(())
     }

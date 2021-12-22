@@ -4,6 +4,8 @@ in vec2 start;
 in vec2 end;
 in uint color;
 in float width;
+in vec2 line_position;
+in vec2 line_edge;
 uniform mat4 u_transform;
 
 flat out uint v_color;
@@ -13,30 +15,11 @@ void main() {
     vec2 line = normalize(end - start);
     vec2 perp = vec2(line.y, -line.x);
 
-    vec2 c1 = start - perp * width;
-    vec2 c2 = start + perp * width;
-    vec2 c3 = end - perp * width;
-    vec2 c4 = end + perp * width;
+    v_edge = line_edge;
+    vec2 pos = (line_position.x * end) + ((1.-line_position.x) * start) + perp * width * line_position.y;
 
-    switch (gl_VertexID) {
-        case 0:
-        gl_Position = vec4(c1, 0., 1.);
-        v_edge = vec2(0., 0.);
-        break;
-        case 1:
-        gl_Position = vec4(c2, 0., 1.);
-        v_edge = vec2(0., 1.);
-        break;
-        case 2:
-        gl_Position = vec4(c3, 0., 1.);
-        v_edge = vec2(1., 0.);
-        break;
-        case 3:
-        gl_Position = vec4(c4, 0., 1.);
-        v_edge = vec2(0., 0.);
-    }
-
-    gl_Position = gl_Position * u_transform;
+    gl_Position = vec4(pos, 0., 1.) * u_transform;
+    v_edge = line_edge;
 
     v_color = color;
 }

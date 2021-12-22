@@ -1,4 +1,4 @@
-use crate::color::Color;
+use crate::{color::Color, common::{LinePosition, identity_line}};
 use anyhow::Result;
 use limelight::{
     attribute,
@@ -18,15 +18,10 @@ pub struct Line3D {
     pub color: Color,
 }
 
-#[attribute]
-struct Index {
-    index: u32,
-}
-
 pub struct Line3DLayer {
     lines: Buffer<Line3D>,
-    indices: Buffer<Index>,
-    program: Program<Index, Line3D>,
+    positions: Buffer<LinePosition>,
+    program: Program<LinePosition, Line3D>,
     transform: Uniform<[[f32; 4]; 4]>,
 }
 
@@ -57,26 +52,11 @@ impl Line3DLayer {
         })
         .with_uniform("u_transform", transform.clone());
 
-        let indices = Buffer::new(vec![
-            Index {
-                index: 0
-            },
-            Index {
-                index: 1
-            },
-            Index {
-                index: 2
-            },
-            Index {
-                index: 3
-            },
-        ], BufferUsageHint::StaticDraw);
-
         Line3DLayer {
             lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),
             program,
             transform,
-            indices,
+            positions: Buffer::new(identity_line(), BufferUsageHint::StaticDraw),
         }
     }
 
@@ -91,7 +71,7 @@ impl Line3DLayer {
 
 impl Drawable for Line3DLayer {
     fn draw(&mut self, renderer: &mut limelight::Renderer) -> Result<()> {
-        renderer.render_instanced(&mut self.program, &self.indices, &self.lines)?;
+        renderer.render_instanced(&mut self.program, &self.positions, &self.lines)?;
 
         Ok(())
     }

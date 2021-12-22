@@ -6,10 +6,10 @@ use limelight::{
         blending::{BlendFunction, BlendingFactorDest, BlendingFactorSrc},
         StateDescriptor,
     },
-    Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform,
+    Buffer, BufferUsageHint, DrawMode, Program, Uniform,
 };
 
-use crate::color::Color;
+use crate::{color::Color, common::{RectPosition, identity_rect}};
 
 #[attribute]
 pub struct Rect {
@@ -20,7 +20,8 @@ pub struct Rect {
 
 pub struct RectLayer {
     rects: Buffer<Rect>,
-    program: Program<(), Rect>,
+    positions: Buffer<RectPosition>,
+    program: Program<RectPosition, Rect>,
     transform: Uniform<[[f32; 4]; 4]>,
 }
 
@@ -53,6 +54,7 @@ impl RectLayer {
 
         RectLayer {
             rects: Buffer::new_empty(BufferUsageHint::DynamicDraw),
+            positions: Buffer::new(identity_rect(), BufferUsageHint::StaticDraw),
             program,
             transform,
         }
@@ -69,7 +71,7 @@ impl RectLayer {
 
 impl Drawable for RectLayer {
     fn draw(&mut self, renderer: &mut limelight::Renderer) -> Result<()> {
-        renderer.render_instanced(&mut self.program, &DummyBuffer::new(4), &self.rects)?;
+        renderer.render_instanced(&mut self.program, &self.positions, &self.rects)?;
 
         Ok(())
     }

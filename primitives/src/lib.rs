@@ -1,5 +1,6 @@
 mod circle;
 mod color;
+mod common;
 mod hairline;
 mod line;
 mod rect;

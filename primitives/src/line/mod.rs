@@ -1,4 +1,4 @@
-use crate::color::Color;
+use crate::{color::Color, common::{LinePosition, identity_line}};
 use anyhow::Result;
 use limelight::{
     attribute,
@@ -7,7 +7,7 @@ use limelight::{
         blending::{BlendFunction, BlendingFactorDest, BlendingFactorSrc},
         StateDescriptor,
     },
-    Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform,
+    Buffer, BufferUsageHint, DrawMode, Program, Uniform,
 };
 
 #[attribute]
@@ -20,7 +20,8 @@ pub struct Line {
 
 pub struct LineLayer {
     lines: Buffer<Line>,
-    program: Program<(), Line>,
+    positions: Buffer<LinePosition>,
+    program: Program<LinePosition, Line>,
     transform: Uniform<[[f32; 4]; 4]>,
 }
 
@@ -53,6 +54,7 @@ impl LineLayer {
 
         LineLayer {
             lines: Buffer::new_empty(BufferUsageHint::DynamicDraw),
+            positions: Buffer::new(identity_line(), BufferUsageHint::StaticDraw),
             program,
             transform,
         }
@@ -69,7 +71,7 @@ impl LineLayer {
 
 impl Drawable for LineLayer {
     fn draw(&mut self, renderer: &mut limelight::Renderer) -> Result<()> {
-        renderer.render_instanced(&mut self.program, &DummyBuffer::new(4), &self.lines)?;
+        renderer.render_instanced(&mut self.program, &self.positions, &self.lines)?;
 
         Ok(())
     }

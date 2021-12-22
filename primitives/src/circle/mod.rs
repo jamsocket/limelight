@@ -1,4 +1,4 @@
-use crate::color::Color;
+use crate::{color::Color, common::{RelativePosition, identity_quad}};
 use anyhow::Result;
 use limelight::{
     attribute,
@@ -7,7 +7,7 @@ use limelight::{
         blending::{BlendFunction, BlendingFactorDest, BlendingFactorSrc},
         StateDescriptor,
     },
-    Buffer, BufferUsageHint, DrawMode, DummyBuffer, Program, Uniform,
+    Buffer, BufferUsageHint, DrawMode, Program, Uniform,
 };
 
 #[attribute]
@@ -19,7 +19,8 @@ pub struct Circle {
 
 pub struct CircleLayer {
     circles: Buffer<Circle>,
-    program: Program<(), Circle>,
+    positions: Buffer<RelativePosition>,
+    program: Program<RelativePosition, Circle>,
     transform: Uniform<[[f32; 4]; 4]>,
 }
 
@@ -52,6 +53,7 @@ impl CircleLayer {
 
         CircleLayer {
             circles: Buffer::new_empty(BufferUsageHint::DynamicDraw),
+            positions: Buffer::new(identity_quad(), BufferUsageHint::StaticDraw),
             program,
             transform,
         }
@@ -68,7 +70,7 @@ impl CircleLayer {
 
 impl Drawable for CircleLayer {
     fn draw(&mut self, renderer: &mut limelight::Renderer) -> Result<()> {
-        renderer.render_instanced(&mut self.program, &DummyBuffer::new(4), &self.circles)?;
+        renderer.render_instanced(&mut self.program, &self.positions, &self.circles)?;
 
         Ok(())
     }
