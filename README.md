@@ -105,3 +105,4 @@ fn main() {
 - [Zooming / panning](https://drifting-in-space.github.io/limelight/zoom-pan/) ([code](https://github.com/drifting-in-space/limelight/tree/main/examples/zoom-pan))
 - [Full-canvas shader](https://drifting-in-space.github.io/limelight/shaderfun/) ([code](https://github.com/drifting-in-space/limelight/tree/main/examples/shaderfun))
 - [Primitive scene](https://drifting-in-space.github.io/limelight/primitive-scene/) ([code](https://github.com/drifting-in-space/limelight/tree/main/examples/primitive-scene))
+- [3D snowflake](https://drifting-in-space.github.io/limelight/snowflake/) ([code](https://github.com/drifting-in-space/limelight/tree/main/examples/snowflake))
