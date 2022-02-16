@@ -11,7 +11,7 @@ The second layer is the `Renderer` API, which provides a typed interface on top 
 shadow GPU.
 
 If you don't want to use custom shaders and just want to draw lots of shapes, you can ignore the
-examples below and look at the examples in the [primitives](https://github.com/drifting-in-space/limelight/tree/main/primitives) crate.
+examples below and look at the examples in the [primitives](https://github.com/drifting-in-space/limelight/tree/main/primitives) crate ([docs](https://docs.rs/limelight-primitives/0.1.3/limelight_primitives/)).
 
 ## Getting started
 

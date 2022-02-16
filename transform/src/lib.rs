@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use limelight::Uniform;
 
 pub struct TransformUniform {
