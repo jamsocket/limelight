@@ -11,11 +11,13 @@ and can draw itself when passed a `Renderer` instance.
 All layers are capable of drawing multiple instances of the shape they represent.
 
 ```rust
+use anyhow::Result;
 use limelight_primitives::{Circle, CircleLayer};
 use limelight::Renderer;
+use limelight::renderer::Drawable;
 
-fn draw_circles(renderer: &Renderer) {
-    let circles = CircleLayer::new();
+fn draw_circles(renderer: &mut Renderer) -> Result<()> {
+    let mut circles = CircleLayer::new();
     circles.buffer().set_data(vec![
         Circle {
             position: [0., 0.25],
@@ -29,7 +31,8 @@ fn draw_circles(renderer: &Renderer) {
         },
     ]);
 
-    self.circles.draw(renderer)?;
+    circles.draw(renderer)?;
+    Ok(())
 }
 ```
 

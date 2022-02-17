@@ -19,6 +19,6 @@ wasm-logger = "0.2.0"
 limelight-yew = {path="../../yew"}
 yew = "0.19.3"
 anyhow = "1.0.51"
-nalgebra = "0.29.0"
+nalgebra = "0.30.1"
 rand = {version="0.8.4", default_features=false, features=["std_rng"]}
 getrandom = { version = "0.2.3", features = ["js"] }
